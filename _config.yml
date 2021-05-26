@@ -1,0 +1,7 @@
+api:
+  debug: true
+  host: 127.0.0.1
+  port: 6000
+environment:
+  secret_key: circuitalminds
+  session_type: filesystem

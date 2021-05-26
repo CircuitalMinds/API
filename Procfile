@@ -1,0 +1,1 @@
+web: gunicorn circuitalminds_api:circuitalminds_api
