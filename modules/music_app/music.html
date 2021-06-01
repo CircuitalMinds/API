@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+
+    <!-- Robots -->
+    <link href="" rel="canonical">
+    <script async="" crossorigin="anonymous"
+            src="https://connect.facebook.net/en_US/sdk.js?hash=40244eae9a38309c12186e04d750ee55"></script>
+    <script id="facebook-jssdk" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v3.0"></script>
+    <script crossorigin="anonymous"
+            integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+            src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js">
+    </script>
+    <script crossorigin="anonymous"
+            integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+    </script>
+
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <meta content="index, follow" name="robots">
+    <meta content="Alan Matzumiya" name="author">
+    <meta content="Circuital | Minds" name="description">
+
+    <!-- Metro 4 -->
+    <link href="../static/vendors/metro4/css/metro-all.min.css" rel="stylesheet">
+    <link href="../static/css/index.css" rel="stylesheet">
+
+    <link href="../static/images/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <link href="../static/images/favicon.ico" rel="icon" type="image/x-icon">
+    <!-- Open Graph -->
+    <meta content="CircuitalMinds | MusicApp" property="og:title">
+    <meta content="website" property="og:type">
+    <meta content="circuitalminds" property="og:site_name">
+    <meta content="CircuitalMinds" property="og:description">
+    <meta content="772020893629559" property="fb:app_id">
+    <title>CircuitalMinds | MusicApp</title>
+
+</head>
+
+<body class="h-vh-100 bg-dark fg-teal" data-gr-ext-installed="" data-new-gr-c-s-check-loaded="8.872.0"
+      style="opacity: 1;">
+
+<div class="pos-relative bg-grayMouse fg-white app-bar drag-area" data-role="appbar" data-role-appbar="true">
+
+
+    <div class="app-bar-container ml-auto" data-role="draggable">
+        <button id="volume-down" class="app-bar-item" onclick="Player.volume.down()">
+            <span class="mif-volume-minus"></span>
+        </button>
+        <button id="volume-up" class="app-bar-item" onclick="Player.volume.up()">
+            <span class="mif-volume-plus"></span>
+        </button>
+        <button class="app-bar-item" onclick="Player.back_song();">
+            <span class="mif-previous"></span>
+        </button>
+        <button class="app-bar-item" id="button-bar" onclick="Player.play()">
+            <span class='mif-play'></span>
+        </button>
+        <button class="app-bar-item" onclick="Player.next_song();">
+            <span class="mif-next"></span>
+        </button>
+
+        <a class="app-bar-item" href="#">
+            <img class="avatar" src="../static/images/Jungle3.png">
+            <span class="ml-2 app-bar-name">CircuitalMinds</span>
+        </a>
+    </div>
+</div>
+
+<div class="content-inner h-100 bg-dark fg-teal" id="content-wrapper" style="overflow-y: auto">
+    <div class="row m-2">
+
+        <div class="cell order-1 bg-dark bd-light">
+            <div class="cell card">
+                <h3 class="cell card-header" id='video-title'></h3>
+                <button class="cell fg-teal image-button cell" onClick="shareVideo();">
+                    <fb:login-button
+                            onlogin="checkLoginState();"
+                            scope="public_profile,email">
+                    </fb:login-button>
+                    <span class="mif-share icon"></span>
+                    <span class="caption">Share Video</span>
+                </button>
+                <div class="cell fb-share-button" data-href="https://circuitalminds.herokuapp.com/music"
+                     data-layout="button_count">
+                </div>
+                <video id="video-media" class="light fg-cyan" data-aspect-ratio="hd"
+                       data-loop-icon="<span class='mif-loop2 fg-cyan'></span>"
+                       data-mute-icon="<span class='mif-volume-mute2 fg-cyan'></span>"
+                       data-play-icon="<img src='../static/images/play-icon.png'>"
+                       data-role="video-player"
+                       data-src=""
+                       data-stop-icon="<img src='../static/images/player_stop.png'>"
+                       data-volume="0.9"
+                       data-on-end="Player.next_song()"
+                       data-on-play="Player.play()"
+                       data-on-pause="Player.stop()"
+                       data-volume-high-icon="<span class='mif-volume-high fg-cyan'></span>"
+                       data-volume-low-icon="<span class='mif-volume-low fg-cyan'></span>"
+                       data-volume-medium-icon="<span class='mif-volume-medium fg-cyan'></span>">
+                </video>
+            </div>
+        </div>
+
+        <div class="cell order-2">
+            <div class="cell card">
+                <div class="mt-4" data-collapsible="true" data-role="panel"
+                     data-title-caption="Video PlayList" data-title-icon="<span class='mif-table'></span>">
+                    <div class="p-4">
+                        <table class="table row-hover striped table-border mt-4"
+                               data-cls-rows-count="cell-md-6"
+                               data-cls-search="cell-md-6"
+                               data-cls-table-top="row"
+                               data-horizontal-scroll="true"
+                               data-role="table"
+                               data-rows="5"
+                               data-rows-steps="5, 10"
+                               data-show-activity="true"
+                               data-source="/api/get_music_data?option=template_list">
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="row m-2">
+        <div class="cell order-1">
+        </div>
+
+        <div class="cell order-2">
+                    <div class="cell order-1">
+            <ul class="feed-list bg-darkTeal fg-light">
+            <li class="title">This is a title</li>
+            <li class="button card-content bg-darkTeal bg-dark-hover fg-light">
+                <img class="avatar" src="https://i.ytimg.com/vi/vB6hNQv-Bh8/maxresdefault.jpg">
+                <span class="label">Stevie Ray Vaughan &amp; Double Trouble - I&#39;m Leaving You (Commit A Crime) (Video)</span>
+                <span class="second-label">10 min</span>
+            </li>
+        </ul>
+
+        </div>
+
+        </div>
+    </div>
+
+    <div class="row m-2">
+
+        <div class="cell">
+            <div class="card">
+                <div class="cell card-header p-2">
+                    <h3 id="yt-search-label">YouTube Search</h3>
+                </div>
+                <br>
+                <div class="cell card-content text-center row m-1">
+                    <input class="w-75" id="yt-search" type="text">
+                    <button class="button button primary w-25 border bd-gray fg-teal fg-light-hover bg-light bg-teal-hover"
+                            id="btn-search"
+                            onclick="youtubeSearch();">
+                        Search
+                    </button>
+                </div>
+                <div class="cell card-content text-center">
+                    <ul class="group-list text-center">
+                        <li class="text-center">
+                            <ul class="group-list horizontal text-center">
+                                <li class="text-center"><strong>Video</strong></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="group-list text-center" id="search-list"></ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row m-2">
+
+        <div class="cell">
+            <div class="card bg-light"
+                 data-collapsible="true"
+                 data-role="panel"
+                 data-title-caption="Members"
+                 data-title-icon="<span class='mif-users'></span>">
+                <ul class="card-content user-list">
+
+                    <li class="w-25 p-2">
+                        <img class="avatar"
+                             src="https://avatars.githubusercontent.com/u/25187397?s=460&u=7c5cc8d7030f8d04105f7936c329030b0c3cc768&v=4">
+                    </li>
+                    <li class="item-header">
+                        <div class="text-ellipsis">Alan Matzumiya</div>
+                        <div class="text-small text-muted">Admin</div>
+                    </li>
+                    <li>
+                        <canvas id="criba" style="display: inline-block; max-width: 100%; max-height: 100%;"></canvas>
+                    </li>
+
+                </ul>
+
+                <div class="cell card-footer p-2 border-top bd-default text-center">
+                    <a class="button bg-light fg-teal" href="#">View all users</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="w-100 text-center text-small data-box p-2 border-top bd-grayMouse" style="position: relative; bottom: 0">
+
+    <div>© 2021 <a class="text-muted fg-white-hover no-decor"
+                   href="https://circuital-minds.github.io/">CircuitalMinds</a></div>
+</div>
+<!-- jQuery first, then Metro UI JS -->
+<script src="../static/vendors/jquery/jquery-3.4.1.min.js"></script>
+<script src="../static/js/charts.js"></script>
+<script src="../static/vendors/chartjs/Chart.bundle.min.js"></script>
+<script src="../static/vendors/qrcode/qrcode.min.js"></script>
+<script src="../static/vendors/jsbarcode/JsBarcode.all.min.js"></script>
+<script src="../static/vendors/ckeditor/ckeditor.js"></script>
+<script src="../static/vendors/metro4/js/metro.min.js"></script>
+
+<script>
+var url = "circuital-minds.github.io"
+var page = document.URL.split("/")[document.URL.split("/").indexOf(url) + 1];
+var follow = "https://" + url + "/previews/" + page.split("=")[page.split("=").length - 1];
+document.querySelector("head link[rel]").setAttribute("href", follow);
+
+function setPlayer ( option ) {
+    var videoMedia = document.getElementById('video-media');
+    var buttonBar = document.getElementById('button-bar');
+    var buttonLabel = buttonBar.getElementsByTagName("span")[0];
+    var options = {play: function () {
+                            buttonBar.setAttribute("onclick", "Player.stop()");
+                            buttonLabel.className = "mif-stop";
+                            videoMedia.play();
+                            },
+                   stop: function () {
+                            buttonBar.setAttribute("onclick", "Player.play()");
+                            buttonLabel.className = "mif-play";
+                            videoMedia.pause();
+                            },
+                   };
+    options[option]();
+};
+
+function setVideo ( index ) {
+    var videoMedia = document.getElementById('video-media');
+    var videoTitle = document.getElementById('video-title');
+    var song = circuitApi.music_app.song_list[index];
+    circuitApi.music_app.current_song.index = index;
+    circuitApi.music_app.current_song.title = song.video_title;
+    circuitApi.music_app.current_song.url = song.video_url;
+    videoMedia.setAttribute("src", song.video_url);
+    videoTitle.innerHTML = song.video_title;
+    updateViews(index);
+};
+
+function setVolume ( option ) {
+    var videoMedia = document.getElementById('video-media');
+    var buttonUp = document.getElementById('volume-up');
+    var buttonDown = document.getElementById('volume-down');
+    var volume = Math.round(videoMedia.volume * 100);
+    var options = {up: function () {volume = volume + 10},
+                   down: function () {volume = volume - 10}
+                   };
+    options[option]();
+    buttonUp.disabled = false;
+    buttonDown.disabled = false;
+    if ( volume == 100 ) {
+        buttonUp.disabled = true;
+    } else if ( volume == 0 ) {
+        buttonDown.disabled = true;
+    };
+    videoMedia.setAttribute('data-volume', volume / 100);
+};
+
+function apiRegister (data, book, option) {
+    var obj = {playlist: book, option: option};
+    keys = Object.keys(data);
+    for ( var i = 0; i < keys.length; i++ ) {
+        obj[keys[i]] = data[keys[i]];
+    };
+    var registerData = $.get("http://127.0.0.1:5100/query/add", obj);
+    registerData.done( function( info )  {
+       console.log(info);
+    });
+};
+
+
+function updateViews ( index ) {
+    var data = {video_title: circuitApi.music_app.song_list[index].video_title,
+                plays: 1,
+                playlist: "music_views"};
+    var registerData = $.get("http://127.0.0.1:5100/query/add", data);
+    registerData.done( function( info )  {
+       console.log(info);
+    });
+};
+
+function setPlaylist ( name, option ) {
+    index = circuitApi.music_app.current_song.index;
+    options = {add: function () {
+                        circuitApi.music_app.register.playlist[name].push(index);
+                    },
+              delete: function () {
+                        circuitApi.music_app.register.playlist[name].pop(index);
+                      },
+              create: function () {
+                        circuitApi.music_app.register.playlist[name] = [];
+                        circuitApi.music_app.register.playlist[name].push(index);
+                      }
+              };
+    options[option]();
+};
+
+function shareVideo() {
+    var el = document.createElement('textarea');
+    title = circuitApi.music_app.current_song.title;
+    shareURL = "https://" + url + "/" + page + "?watch=" + title;
+    el.value = shareURL;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    alert("Link Copied: " + el.value);
+    document.body.removeChild(el);
+};
+
+var circuitApi = {url_content: "/api/get_music_data",
+                  url_db: "https://circuitalminds.herokuapp.com/api/query",
+                  yt: {search: document.getElementById("yt-search"),
+                       results: document.getElementById("search-list")
+                       },
+                  music_app: {song_list: [],
+                              current_song: {title: '', url: '', index: 0},
+                              register: {views: {}, playlist: {}}
+                              },
+                  };
+
+
+$( function () {
+    var index = 0;
+    let videoLocation = circuitApi.url_content + "?option=data_list";
+    let videoRequest = new XMLHttpRequest();
+    videoRequest.open('GET', videoLocation);
+    videoRequest.responseType = 'json';
+    videoRequest.send();
+    videoRequest.onload = function() {
+        const videoData = videoRequest.response;
+        circuitApi.music_app.song_list = videoData['data_list'];
+        index = Math.round(Math.random() * (videoData['data_list'].length - 1));
+        setVideo(index);
+    };
+});
+
+Player = {next_song: function () {
+                        var index = circuitApi.music_app.current_song.index;
+                        setVideo(index + 1);
+                        setPlayer("play");
+                     },
+          back_song: function () {
+                        var index = circuitApi.music_app.current_song.index;
+                        setVideo(index - 1);
+                        setPlayer("play");
+                     },
+          play_from_list: function (index) {
+                            setVideo(index);
+                            setPlayer("play");
+                          },
+          volume: {up: function() { setVolume("up") },
+                   down: function() { setVolume("down") }
+                   },
+          play: function () { setPlayer("play") },
+          stop: function () { setPlayer("stop") }
+          };
+
+</script>
+<!-- fractal modules -->
+<script src="../static/js/base/criba.js"></script>
+<div id="fb-root"></div>
+<script>
+window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '772020893629559',
+    cookie     : true,
+    xfbml      : true,
+    version    : 'v10.0'
+  });
+
+  FB.AppEvents.logPageView();
+
+};
+
+(function(d, s, id){
+   var js, fjs = d.getElementsByTagName(s)[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement(s); js.id = id;
+   js.src = "https://connect.facebook.net/en_US/sdk.js";
+   fjs.parentNode.insertBefore(js, fjs);
+ }(document, 'script', 'facebook-jssdk'));
+
+FB.getLoginStatus(function(response) {
+    statusChangeCallback(response);
+});
+
+{
+    status: 'connected',
+    authResponse: {
+    accessToken: '...',
+    expiresIn:'...',
+    signedRequest:'...',
+    userID:'...'
+    }
+}
+
+function checkLoginState() {
+  FB.getLoginStatus(function(response) {
+    statusChangeCallback(response);
+  });
+}
+
+</script>
+</body>

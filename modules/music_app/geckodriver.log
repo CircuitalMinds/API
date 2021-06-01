@@ -1,0 +1,42 @@
+1621077670757	geckodriver	INFO	Listening on 127.0.0.1:40667
+1621077671764	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-headless" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofile1DXFyb"
+*** You are running in headless mode.
+1621077674992	Marionette	INFO	Marionette enabled
+
+(/usr/lib/firefox/firefox:91672): GLib-GObject-CRITICAL **: 04:21:16.232: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+
+(/usr/lib/firefox/firefox:91696): GLib-GObject-CRITICAL **: 04:21:16.702: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+
+(/usr/lib/firefox/firefox:91744): GLib-GObject-CRITICAL **: 04:21:17.875: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+1621077679850	Marionette	INFO	Listening on port 46789
+1621077679985	Marionette	WARN	TLS certificate errors will be ignored for this session
+1621077681444	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'uninitialized'.
+1621077884521	geckodriver	INFO	Listening on 127.0.0.1:39345
+1621077885528	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-headless" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileBQWpnz"
+*** You are running in headless mode.
+1621077887930	Marionette	INFO	Marionette enabled
+
+(/usr/lib/firefox/firefox:91924): GLib-GObject-CRITICAL **: 04:24:48.377: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+
+(/usr/lib/firefox/firefox:91943): GLib-GObject-CRITICAL **: 04:24:48.528: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+
+(/usr/lib/firefox/firefox:92004): GLib-GObject-CRITICAL **: 04:24:51.287: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+1621077891307	Marionette	INFO	Listening on port 33583
+1621077891353	Marionette	WARN	TLS certificate errors will be ignored for this session
+1621077894574	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'uninitialized'.
+1621077910646	geckodriver	INFO	Listening on 127.0.0.1:51527
+1621077911690	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-headless" "-foreground" "-no-remote" "-profile" "/tmp/rust_mozprofileHR4FaL"
+*** You are running in headless mode.
+1621077914300	Marionette	INFO	Marionette enabled
+
+(/usr/lib/firefox/firefox:92253): GLib-GObject-CRITICAL **: 04:25:14.746: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+
+(/usr/lib/firefox/firefox:92269): GLib-GObject-CRITICAL **: 04:25:14.876: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1621077920760	Marionette	INFO	Listening on port 45353
+
+(/usr/lib/firefox/firefox:92332): GLib-GObject-CRITICAL **: 04:25:20.777: g_object_set: assertion 'G_IS_OBJECT (object)' failed
+1621077920819	Marionette	WARN	TLS certificate errors will be ignored for this session
+1621077923959	Marionette	WARN	Ignoring event 'pageshow' because document has an invalid readyState of 'uninitialized'.
