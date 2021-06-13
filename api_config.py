@@ -32,7 +32,7 @@ class CircuitalMinds:
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///database/{name}.sqlite3'
         db = __import__("flask_sqlalchemy").__dict__["SQLAlchemy"](app=app)
-        model = __import__("models").select_model(Model=db.Model, name=name)
+        model = __import__("database").models.select_model(Model=db.Model, name=name)
         db.__setattr__(name, model)
         db.create_all()
         return model
@@ -54,10 +54,3 @@ class CircuitalMinds:
                 imports[module] = import_lib.__dict__[module]
         return imports
 
-    @staticmethod
-    def run_api():
-        import sys
-        options = {}
-        for arg in sys.argv[1:]:
-            key, value = arg.split("=")
-            options[key] = value
