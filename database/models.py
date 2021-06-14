@@ -7,7 +7,7 @@ def select_model(Model, name):
         user_id = Column(Integer, primary_key=True, unique=True)
         username = Column(String(50), nullable=False, unique=True)
         password = Column(String(50), nullable=False)
-
+        __bind_key__ = 'user_register'
         args = ["username", "password"]
         repr = "user_id"
         secondary_repr = "username"
@@ -26,6 +26,7 @@ def select_model(Model, name):
         date = Column(String(100), nullable=False)
         picture = Column(String(100), nullable=False)
 
+        __bind_key__ = 'blog'
         args = ["title", "date", "content", "picture"]
         repr = "post_id"
         secondary_repr = "title"
@@ -43,6 +44,7 @@ def select_model(Model, name):
         video_url = Column(String(100), nullable=False)
         video_image = Column(String(100), nullable=False)
 
+        __bind_key__ = 'music_app'
         args = ["video_url", "video_title", "video_image"]
         repr = "video_id"
         secondary_repr = "video_title"
@@ -62,6 +64,7 @@ def select_model(Model, name):
         location = Column(String(100), nullable=False)
         resources = Column(String(100), nullable=False)
 
+        __bind_key__ = 'jupyter_app'
         args = ["title", "topic", "module", "location", "resources"]
         repr = "notebook_id"
         secondary_repr = "title"

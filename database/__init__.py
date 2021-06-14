@@ -1,5 +1,3 @@
-from . import register, models
+from . import register
 
-register_manager = register.Manager()
-register_manager.select_model = models.select_model
-
+manager = register.Manager()

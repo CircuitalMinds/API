@@ -1,13 +1,23 @@
 import yaml
 
 
+def imports(app_mode):
+    options = lambda name: {
+        "flask": ['Flask', 'jsonify', 'request', 'send_file'],
+        "flask_restful": ["Resource", "Api"],
+        "flask_sqlalchemy": ["SQLAlchemy"]
+    }[name]
+    return dict(
+        app=dict(flask=options('flask')),
+        api=dict(
+            flask=options('flask'),
+            flask_restful=options('flask_restful'),
+            flask_sqlalchemy=options('flask_sqlalchemy'))
+    )[app_mode]
+
+
 class CircuitalMinds:
     __name__ = 'circuitalminds_api'
-    api_imports = {
-        "flask_sqlalchemy": ["SQLAlchemy"],
-        "flask_restful": ["Resource", "Api"],
-        "flask": ['Flask', 'jsonify', 'request', 'send_file']
-    }
     models = dict(user_register=object,
                   blog=object,
                   jupyter_app=object,
@@ -16,26 +26,16 @@ class CircuitalMinds:
     def __init__(self):
         self.settings = yaml.load(open('./_config.yml'), Loader=yaml.FullLoader)
 
-    def get_server(self):
+    def get_server(self, mode):
         server = dict()
-        modules = self.get_object(data=self.get_import(**self.api_imports))
-        server.update(dict(settings=self.settings['api'], modules=modules))
+        modules = self.get_object(data=self.set_imports(**imports(app_mode=mode)))
+        server.update(dict(settings=self.settings[mode], modules=modules))
         init_app = modules.Flask
         app = init_app(__name__)
         app.name = self.__name__
         app.config.update(self.settings['environment'])
         server.update(dict(app=app))
         return self.get_object(server)
-
-    @staticmethod
-    def get_model(app, name):
-        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///database/{name}.sqlite3'
-        db = __import__("flask_sqlalchemy").__dict__["SQLAlchemy"](app=app)
-        model = __import__("database").models.select_model(Model=db.Model, name=name)
-        db.__setattr__(name, model)
-        db.create_all()
-        return model
 
     @staticmethod
     def get_object(data):
@@ -46,11 +46,11 @@ class CircuitalMinds:
         return obj
 
     @staticmethod
-    def get_import(**data):
-        imports = {}
+    def set_imports(**data):
+        import_data = {}
         for lib in data.keys():
             import_lib = __import__(lib)
             for module in data[lib]:
-                imports[module] = import_lib.__dict__[module]
-        return imports
+                import_data[module] = import_lib.__dict__[module]
+        return import_data
 

@@ -1,15 +1,25 @@
 from api_config import CircuitalMinds
-from database import register_manager
-
-database = register_manager.database
-add, delete, update, get = register_manager.get_tools()
+from database import manager
 
 circuitalminds = CircuitalMinds()
-server = circuitalminds.get_server()
+server = circuitalminds.get_server(mode='api')
 api_modules = server.modules
 settings = server.settings
 app = server.app
 api = api_modules.Api(app)
+
+manager.get_model_names()
+binds = {name: f'sqlite:///database/{name}.sqlite3' for name in manager.model_names}
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_BINDS'] = binds
+
+add, delete, update, get = manager.get_tools()
+db = api_modules.SQLAlchemy(app=app)
+database = dict()
+for name in manager.model_names:
+    model = manager.get_model(app=app, name=name)
+    database[name] = model.__dict__[name]
+    db.__setattr__(name, model.__dict__[name])
 
 
 class API(api_modules.Resource):
@@ -40,7 +50,7 @@ class API(api_modules.Resource):
                 return {"Response": f"{argument_data} not found in request"}
             else:
                 data[argument] = argument_data
-        return add(db=database[query], book_name=query, **data)
+        return add(db=db, book=database[query], **data)
 
     def get_data_to_delete(self, query):
         data = {}
@@ -54,7 +64,7 @@ class API(api_modules.Resource):
         if data == {}:
             return {"Response": f"data to {repr} or {secondary_repr} not found in request"}
         else:
-            return delete(db=database[query], book_name=query, **data)
+            return delete(db=db, book=database[query], **data)
 
     def get_data_to_update(self, query):
         with_repr = {}
@@ -78,8 +88,8 @@ class API(api_modules.Resource):
             return {"Response": f"data to update not found in request"}
         else:
             print(with_repr, argument_update)
-            return update(db=database[query],
-                          book_name=query,
+            return update(db=db,
+                          book=database[query],
                           argument_update=argument_update,
                           with_repr=with_repr)
 
@@ -94,17 +104,11 @@ class API(api_modules.Resource):
                 data[repr_data] = repr_data
                 break
         if data == {}:
-            return get(db=database[query], book_name=query)
+            return get(db=db, book=database[query])
         else:
-            return get(db=database[query], book_name=query, with_argument=data)
+            return get(db=db, book=database[query], with_argument=data)
 
     def get(self, query, option):
-        print(query, option)
-        if query == "init_app" and option == 'run':
-            import os
-            out = os.system('python3 -m init_app port=6002')
-            print(out)
-            return api_modules.jsonify(dict(app='app'))
         check_query, check_option = query in list(database.keys()), option in list(self.options.keys())
         if all([check_query, check_option]):
             return api_modules.jsonify(self.select_option(option=option, query=query))

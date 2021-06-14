@@ -17,6 +17,11 @@ api = dict(
         debug=False
     )
 )
+app = dict(
+  debug=True,
+  host="127.0.0.1",
+  port=7000
+)
 environment_config = dict(
     secret_key='circuitalminds',
     session_type='filesystem'
@@ -27,6 +32,7 @@ def save_file(option):
     filename = "./_config.yml"    
     config = dict(
         api=api[option],
+        app=app,
         environment=environment_config
     )
     with open(filename, "w") as outfile:

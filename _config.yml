@@ -1,7 +1,11 @@
 api:
+  debug: false
+  host: circuitalminds_api.herokuapp.com
+  port: 80
+app:
   debug: true
   host: 127.0.0.1
-  port: 6000
+  port: 7000
 environment:
   secret_key: circuitalminds
   session_type: filesystem
