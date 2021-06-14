@@ -1,6 +1,6 @@
 api:
   debug: false
-  host: circuitalminds_api.herokuapp.com
+  host: circuitalminds-api.herokuapp.com
   port: 80
 app:
   debug: true

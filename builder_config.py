@@ -12,7 +12,7 @@ api = dict(
         port=6000,
         debug=True),
     production=dict(
-        host='circuitalminds_api.herokuapp.com', 
+        host='circuitalminds-api.herokuapp.com',
         port=80, 
         debug=False
     )
