@@ -1,0 +1,38 @@
+{
+    "libs": {
+        "github_lib": {
+            "modules": [
+                "github_api"
+            ]
+        },
+        "jupyter_lib": {
+            "modules": [
+                "jupyter_api"
+            ]
+        },
+        "math_lib": {
+            "modules": [
+                "fourier_analysis",
+                "graphic_lab",
+                "stochastic_processes",
+                "spectral_pde",
+                "fractal_simulations",
+                "special_functions"
+            ]
+        },
+        "templates_lib": {
+            "modules": [
+                "utils",
+                "api_storage",
+                "templates_api",
+                "head_builders"
+            ]
+        },
+        "video_lib": {
+            "modules": [
+                "video_manager",
+                "api_youtube"
+            ]
+        }
+    }
+}

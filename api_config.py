@@ -3,16 +3,22 @@ import yaml
 
 def imports(app_mode):
     options = lambda name: {
-        "flask": ['Flask', 'jsonify', 'request', 'send_file'],
+        "flask": ['Flask', 'jsonify', 'request', 'send_file', 'render_template'],
         "flask_restful": ["Resource", "Api"],
-        "flask_sqlalchemy": ["SQLAlchemy"]
+        "flask_sqlalchemy": ["SQLAlchemy"],
+        "flask_cors": ["CORS"],
+        "flask_login": ["LoginManager"],
+        "flask_socketio": ["SocketIO"]
     }[name]
     return dict(
         app=dict(flask=options('flask')),
         api=dict(
             flask=options('flask'),
             flask_restful=options('flask_restful'),
-            flask_sqlalchemy=options('flask_sqlalchemy'))
+            flask_sqlalchemy=options('flask_sqlalchemy'),
+            flask_cors=options('flask_cors'),
+            flask_login=options('flask_login'),
+            flask_socketio=options('flask_socketio'))
     )[app_mode]
 
 

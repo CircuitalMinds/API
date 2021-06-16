@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>test</title>
+</head>
+<body>
+{% for book in books %}
+    <h3>{{ book['name'] }}</h3>
+    {% for arg in book['args'] %}
+    <label>{{ arg }}</label>
+    <input type="text" value="test_value">
+    {%  endfor %}
+    <button value="{{ book['name'] }}" id="get" onclick='get_query(this.value)'>Get</button>
+    <button value="{{ book['name'] }}" id="delete" onclick="get_register(this.id, this.value)">Delete</button>
+    <button value="{{ book['name'] }}" id="add" onclick="get_register(this.id, this.value)">Add</button>
+    <button value="{{ book['name'] }}" id="update" onclick='get_register(this.id, this.value)'>Update</button>
+{%  endfor %}
+
+<h4 id="register-response"></h4>
+</body>
+<script>
+function get_register ( name, option ) {
+    console.log(name, option);
+};
+
+function get_query ( name ) {
+    var getQuery = $.get( '/get/' + name + '/get' );
+    getQuery.done( function( data ) {
+		var response_data = data.Response;
+        document.getElementById("register-response").innerHTML = JSON.stringify(response_data);
+	});
+};
+</script>
+</html>

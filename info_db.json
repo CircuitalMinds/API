@@ -1,0 +1,34 @@
+{
+  "database": {
+    "user_register": {
+      "arguments": [
+        "username",
+        "password"
+      ]
+    },
+    "music_app": {
+      "arguments": [
+        "video_url",
+        "video_title",
+        "video_image"
+      ]
+    },
+    "blog": {
+      "arguments": [
+        "title",
+        "date",
+        "content",
+        "picture"
+      ]
+    },
+    "jupyter_app": {
+      "arguments": [
+        "title",
+        "topic",
+        "module",
+        "location",
+        "resources"
+      ]
+    }
+  }
+}

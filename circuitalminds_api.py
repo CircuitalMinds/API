@@ -1,3 +1,4 @@
+import json
 from api_config import CircuitalMinds
 from database import manager
 
@@ -12,6 +13,11 @@ manager.get_model_names()
 binds = {name: f'sqlite:///database/{name}.sqlite3' for name in manager.model_names}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_BINDS'] = binds
+api_modules.CORS(app=app)
+login = api_modules.LoginManager(app=app)
+session = app.session_interface
+socket = api_modules.SocketIO(app, manage_session=False)
+
 
 add, delete, update, get = manager.get_tools()
 db = api_modules.SQLAlchemy(app=app)
@@ -25,7 +31,6 @@ for name in manager.model_names:
 class API(api_modules.Resource):
 
     def __init__(self):
-        self.run = app.run
         self.request = api_modules.request
         self.options = {"add": lambda query: self.get_data_to_add(query=query),
                         "delete": lambda query: self.get_data_to_delete(query=query),
@@ -121,9 +126,22 @@ class API(api_modules.Resource):
             return api_modules.jsonify({"Response": "".join(causes)})
 
 
-APP = API()
-
 api.add_resource(API, "/get/<query>/<option>")
 
+
+@app.route('/', methods=['GET', 'POST'])
+def info():
+    from python_resources import utils
+    return utils.open_object_file(path='./python_resources/info.json')
+
+
+@app.route('/test', methods=['GET', 'POST'])
+def test_register():
+    from python_resources import utils
+    queries = utils.open_object_file(path='./info_db.json')['database']
+    books = [{"name": q, "args": queries[q]['arguments']} for q in queries.keys()]
+    return api_modules.render_template('register.html', books=books)
+
+
 if __name__ == '__main__':
-    APP.run(**settings)
+    socket.run(app, **settings)
