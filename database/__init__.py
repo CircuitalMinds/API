@@ -1,3 +1,4 @@
-from . import register
+from . import manager
 
-manager = register.Manager()
+
+query_books = manager.QueryBooks()

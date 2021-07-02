@@ -1,114 +1,125 @@
-import os
-import json
-from string import ascii_lowercase
-from bs4 import BeautifulSoup
+from os import listdir, stat
 import requests
+from . import video, container, youtube
+
+Analyzer = youtube.Analyzer
 
 
-class VideoContainers:
-
-    class Container:
-
-        def __init__(self, path, id):
-            self.path = path
-            self.__name__ = id
-            self.data = json.load(open(f'{path}/info.json'))
-            self.meta_data = {
-                name.replace('.html', ''): open(
-                    f'{path}/meta_data/{name}').read() for name in os.listdir(f'{path}/meta_data')
-            }
-
-        @property
-        def video_list(self):
-            return self.data['video_list']
-
-        @property
-        def available_space(self):
-            return self.data['available_space']
-
-        @property
-        def container_size(self):
-            return self.data['container_size']
+class VideoManager:
+    container = container.Container
+    container.video = video.Video
 
     def __init__(self, path):
         self.path = path
         self.git_url = 'https://github.com/circuitalmynds'
-        self.ids = [ly for ly in ascii_lowercase]
+        self.ids = []
         self.size_limits = dict(size_max=50.0, total_size=980.0)
-        self.set_containers()
+        self.downloads_path = './python_resources/video_lib/downloads'
+        self.data_search = {}
+        self.containers_data = {}
 
     def set_containers(self):
+        from subprocess import getoutput
+        import os
+        data = {"files": {}, "directories": {}}
+        get_data = lambda path: [
+            data["directories"].update({
+                dir_path: f"{path}/{dir_path}"
+            }) if dir_path.split(".")[-1] == dir_path else data["files"].update({
+                dir_path: f"{path}/{dir_path}"
+            }) for dir_path in getoutput(f"cd {path} && ls").splitlines()
+        ]
+        for d in os.listdir(self.path):
+            if os.path.isdir(f"{self.path}/{d}"):
+                get_data(f"{self.path}/{d}")
+            else:
+                data["files"].update({d: f"{self.path}/{d}"})
+        self.containers_data = data
+        self.ids.extend([
+            data_id.split("_")[-1] for data_id in list(self.containers_data["directories"])
+        ])
         for id in self.ids:
-            self.__setattr__(
-                id, self.Container(path=f'{self.path}/music_{id}', id=id)
-            )
+            self.__dict__[id] = self.containers_data["directories"][f"music_{id}"]
 
-    def get_video_urls(self, id):
+    def update_container_data(self, container_id=None):
+        iter_data = self.ids if container_id is None else [container_id]
+        for id in iter_data:
+            info = dict(
+                info_container=self.get_file_sizes(id=id),
+                video_list=self.get_video_list(id=id)
+            )
+            info['info_container'] = self.get_file_sizes(id=id)
+            info['video_list'] = self.get_video_list(id=id)
+            for filename, data in info.items():
+                return dict(
+                    data=data,
+                    filename=f'music_{id}/{filename}',
+                    filetype='json'
+                )
+
+    def get_video_list(self, id):
         get_response = requests.get(f'{self.git_url}/music_{id}/tree/main/videos').text
         targets = {"name": 'a', "class": 'js-navigation-open Link--primary'}
-        urls = BeautifulSoup(get_response, 'html.parser').find_all(**targets)
-        return {a.get('title'): f'https://github.com{a.get("href")}?raw=true' for a in urls}
+        urls = Analyzer(get_response, 'html.parser').find_all(**targets)
 
-    def get_data_from(self, container, attribute_name, return_list=True):
-        if return_list:
-            return [{k: v} for k, v in self.__dict__[container].__dict__[attribute_name].items()]
-        else:
-            return self.__dict__[container].__dict__[attribute_name]
+        def get_image(title):
+            video_id = title.split('-')[-1].split('.mp4')[0]
+            if len(video_id) == 11:
+                return f'https://i.ytimg.com/vi/{video_id}/hqdefault.jpg'
+            else:
+                return 'https://circuitalminds.github.io/static/images/desktop/julia.gif'
+        return {a.get('title'): {
+            'url': f'https://github.com{a.get("href")}?raw=true',
+            'image': get_image(title=a.get('title'))} for a in urls
+        }
 
-    def get_containers_data(self):
+    def get_file_sizes(self, id):
         factor = 1024.0 ** 2
-        for id in self.ids:
-            data = dict(
-                total_size=0.0, size_max=0.0, size_min=0.0, size_mean=0.0,
-                video_list=self.get_video_urls(id=id), file_sizes=dict(), available_space=True
+        sizes = []
+        to_path = self.__dict__[id]
+        for title in listdir(f'{to_path}/videos'):
+            sizes.append(
+                float(stat(f'{to_path}/videos/{title}').st_size / factor)
             )
-            from_path = f'{self.path}/music_{id}'
-            for video in os.listdir(f'{self.path}/music_{id}/videos'):
-                video_path = f'{from_path}/videos/{video}'
-                data['file_sizes'][video] = float(os.stat(video_path).st_size / factor)
-            sizes = list(data['file_sizes'].values())
-            data['total_size'] = sum(sizes)
-            data['size_max'] = max(sizes)
-            data['size_min'] = min(sizes)
-            data['size_mean'] = data['total_size'] / len(sizes)
-            if data['total_size'] > self.size_limits['total_size']:
-                data['available_space'] = False
-            with open(f'{self.path}/music_{id}/info.json', 'w') as outfile:
-                json_file = json.dumps(data, indent=4, sort_keys=True)
-                outfile.write(json_file)
-                outfile.close()
+        if len(sizes) == 0:
+            sizes.append(0)
+        total_size = sum(sizes)
+        size_max = max(sizes)
+        size_min = min(sizes)
+        size_mean = total_size / len(sizes)
+        available_space = True
+        if total_size > self.size_limits['total_size']:
+            available_space = False
+        data = dict(
+            id=id,
+            total_size=total_size,
+            size_max=size_max,
+            size_min=size_min,
+            size_mean=size_mean,
+            available_space=available_space
+        )
+        return data
 
-    def check_restrictions(self):
-        size_data = {}
-        for name in size_data.keys():
-            data = size_data[name]
+    def check_restrictions(self, check_id=None):
+        if check_id is None:
+            for id in self.ids:
+                size_data = self.get_file_sizes(id=id)
+                print(f'{id}: {size_data}')
+                check_data = (
+                    size_data[key] > value for [key, value] in self.size_limits.items()
+                )
+                if any(check_data):
+                    print(
+                        f'''Warning. Container music_{id} is already full. 
+                        {size_data["size_max"]}, {size_data["total_size"]}'''
+                    )
+        else:
+            size_data = self.get_file_sizes(id=check_id)
             check_data = (
-                data[key] > self.size_limits[key] for key in ['size_max', 'total_size']
+                size_data[key] > value for [key, value] in self.size_limits.items()
             )
             if any(check_data):
-                print(f'Warning. Container with id: {name} is full. {data["size_max"]}, {data["total_size"]}')
+                return 'failed'
+            else:
+                return 'success'
 
-    def git_push(self):
-        for id in self.ids:
-            go_to = f"cd {self.path}/music_{id}"
-            push = "git push"
-            command = f'{go_to} && {push}'
-            print(command)
-            os.system(command=command)
-
-
-Id = 'wgl01LTmYKc'
-Title = 'Joaquin Sabina - Y Nos Dieron las Diez'
-yt_search = lambda Title: f'https://www.youtube.com/results?search_query={Title}'
-yt_watch = lambda Id: f'https://www.youtube.com/watch?v={Id}'
-
-#get_data = requests.get(yt_watch(Id=Id)).text
-get_data = requests.get(yt_search(Title=Title)).text
-s = BeautifulSoup(get_data, 'html.parser')
-string_data = s.find('body').prettify().split('"videoId":"')
-data = []
-for r in string_data:
-    y = r.split('"')[0]
-    if len(y) == 11 and y not in data:
-        data.append(y)
-print(data)

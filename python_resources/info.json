@@ -13,6 +13,7 @@
         "math_lib": {
             "modules": [
                 "fourier_analysis",
+                "test.gif",
                 "graphic_lab",
                 "stochastic_processes",
                 "spectral_pde",
@@ -30,8 +31,12 @@
         },
         "video_lib": {
             "modules": [
+                "youtube",
+                "finders",
                 "video_manager",
-                "api_youtube"
+                "video",
+                "container",
+                "downloads"
             ]
         }
     }

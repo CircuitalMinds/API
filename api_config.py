@@ -1,41 +1,27 @@
 import yaml
 
 
-def imports(app_mode):
-    options = lambda name: {
+def get_imports():
+    return {
         "flask": ['Flask', 'jsonify', 'request', 'send_file', 'render_template'],
         "flask_restful": ["Resource", "Api"],
         "flask_sqlalchemy": ["SQLAlchemy"],
         "flask_cors": ["CORS"],
         "flask_login": ["LoginManager"],
         "flask_socketio": ["SocketIO"]
-    }[name]
-    return dict(
-        app=dict(flask=options('flask')),
-        api=dict(
-            flask=options('flask'),
-            flask_restful=options('flask_restful'),
-            flask_sqlalchemy=options('flask_sqlalchemy'),
-            flask_cors=options('flask_cors'),
-            flask_login=options('flask_login'),
-            flask_socketio=options('flask_socketio'))
-    )[app_mode]
+    }
 
 
 class CircuitalMinds:
-    __name__ = 'circuitalminds_api'
-    models = dict(user_register=object,
-                  blog=object,
-                  jupyter_app=object,
-                  music_app=object)
+    __name__ = 'circuitalminds'
 
     def __init__(self):
         self.settings = yaml.load(open('./_config.yml'), Loader=yaml.FullLoader)
 
-    def get_server(self, mode):
+    def get_server(self):
         server = dict()
-        modules = self.get_object(data=self.set_imports(**imports(app_mode=mode)))
-        server.update(dict(settings=self.settings[mode], modules=modules))
+        modules = self.get_object(data=self.set_imports())
+        server.update(dict(settings=self.settings['app'], modules=modules))
         init_app = modules.Flask
         app = init_app(__name__)
         app.name = self.__name__
@@ -52,8 +38,9 @@ class CircuitalMinds:
         return obj
 
     @staticmethod
-    def set_imports(**data):
+    def set_imports():
         import_data = {}
+        data = get_imports()
         for lib in data.keys():
             import_lib = __import__(lib)
             for module in data[lib]:

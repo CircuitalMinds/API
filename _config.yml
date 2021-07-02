@@ -1,11 +1,6 @@
-api:
-  debug: true
-  host: 127.0.0.1
-  port: 5200
-app:
-  debug: true
-  host: 127.0.0.1
-  port: 7000
+debug: true
 environment:
   secret_key: circuitalminds
   session_type: filesystem
+host: 127.0.0.1
+port: 5000
