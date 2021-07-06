@@ -28,18 +28,18 @@ def get_video_ids(video_title):
 
 def get_video_metadata(video_id):
     parsed = watch(video_id=video_id)
+    title = parsed.find('title').__str__()
     document = [
         '<!DOCTYPE html>', '<html lang="en">', '<head>',
-        '<meta charset="UTF-8">', parsed.find('title').__str__()
+        '<meta charset="UTF-8">', title
     ]
     for meta in parsed.find('head').find_all('meta'):
         document.append(meta.__str__())
     document.extend([
         '</head>', '<body>', '</body>', '</html>'
     ])
-    print(Analyzer('\n'.join(document), 'html.parser').prettify())
     return dict(
-        meta_data='\n'.join(document)
+        metadata=Analyzer('\n'.join(document), 'html.parser').prettify()
     )
 
 

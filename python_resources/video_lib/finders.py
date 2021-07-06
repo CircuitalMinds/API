@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 def google_search(title):
     data = dict(lyrics='', other_information=[])
-    results = BeautifulSoup(requests.get(f"https://www.google.com/search?q={title} lyrics").text,
+    results = BeautifulSoup(requests.get(f"https://www.google.com/search?q={title}").text,
                             'html.parser').findAll(**{'name': 'div', 'class': 'BNeawe'})
     lyrics, is_lyrics = [], True
     for result in results:

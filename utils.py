@@ -1,17 +1,16 @@
 class System:
 
-    current_directory = {"files": {}, "directories": {}}
-
-    def goto(self, path):
+    @staticmethod
+    def goto(path):
         from subprocess import getoutput
         import os
-        self.current_directory = {"files": {}, "directories": {}}
+        current_directory = {"files": {}, "directories": {}}
         commands = " && ".join([
             f"cd {path}", "ls"
         ])
-        add_data = lambda dir_path: self.current_directory["files"].update({
+        add_data = lambda dir_path: current_directory["files"].update({
             dir_path.split("/")[-1]: dir_path
-        }) if os.path.isfile(dir_path) else self.current_directory["directories"].update({
+        }) if os.path.isfile(dir_path) else current_directory["directories"].update({
             dir_path.split("/")[-1]: dir_path
         })
         for name in getoutput(commands).splitlines():
@@ -20,12 +19,8 @@ class System:
 
 class FileHandlers:
 
-    directories = {}
-    files = {}
-    parsed_documents = {}
-
-
-    def file_size(self, file_path):
+    @staticmethod
+    def file_size(file_path):
         from os import stat
         return float(stat(file_path).st_size * 1024 ** -2)
 
@@ -75,7 +70,8 @@ class FileHandlers:
         else:
             pass
 
-    def save_file(self, path, data):
+    @staticmethod
+    def save_file(path, data):
         filetype = path.endswith
         if filetype('yaml'):
             import yaml
@@ -92,7 +88,8 @@ class FileHandlers:
                 outfile.write(data)
                 outfile.close()
 
-    def open_file(self, path):
+    @staticmethod
+    def open_file(path):
         filetype = path.endswith
         if filetype('yml'):
             import yaml
@@ -103,14 +100,19 @@ class FileHandlers:
         else:
             return open(path).read()
 
-    def html_parser(self, file, target):
+    @staticmethod
+    def html_parser(file, target):
         from bs4 import BeautifulSoup as Analyzer
         parsed = Analyzer(file, 'html.parser')
         data = {}
-        data[target] = parsed.find_all(target)
+        data[target] = {}
+        for tag in parsed.find_all(target):
+            print(tag.__dict__["attrs"])
+
         return data
 
-    def directory_tree(self, path, by_filter=None):
+    @staticmethod
+    def directory_tree(path, by_filter=None):
         from subprocess import getoutput
         from yaml import load, FullLoader
         out = getoutput(f'cd {path} && tree -J')
@@ -121,12 +123,27 @@ class FileHandlers:
             return list(filter(lambda file_i: "contents" in list(file_i), outfile))
 
 
-class ObjectIterators:
+class Iterators:
 
-    def object_iterator(self, data):
+    @staticmethod
+    def filter_data(data, key_list):
+        filtered = {}
+        lower = lambda key_data: key_data.lower()
+        check_attr = lambda name, target: name in target or target in name
+        for key in key_list:
+            filtered[key] = {
+                attr: data[attr] for attr in list(
+                    filter(lambda name: check_attr(name=lower(name), target=lower(key)), list(data))
+                )
+            }
+        return filtered
+
+    @staticmethod
+    def object_iterator(data):
         return list(map(lambda key: data[key], data))
 
-    def object_filter(self, data, filter_function):
+    @staticmethod
+    def object_filter(data, filter_function):
         return {i: data[i] for i in list(
             filter(filter_function, data)
         )}

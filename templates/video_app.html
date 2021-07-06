@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<title>CircuitalMinds | Video App</title>
+<link href="https://circuitalminds.github.io/static/metro/css/metro-all.css" rel="stylesheet">
+</head>
+
+<body class="bg-dark fg-white">
+
+<div class="container h-100">
+
+<div class="cell">
+<h3 class="cell card-header fg-teal" id='video-title'></h3>
+<br>
+<input id="query" onclick="APP.searcher.get_query('')" onchange="APP.searcher.get_query( this.value )" type="text" data-role="input" data-search-button="true" placeholder="Search for video..">
+<div class="cell-12-md multi-action">
+    <button class="action-button rotate-minus bg-teal fg-white"
+            onclick="$(this).toggleClass('active')">
+        <span class="icon"><span class="mif-apps"></span></span>
+    </button>
+    <ul class="p-2 actions drop-right">
+        <li id="random" class="bg-teal"><a><span class="mif-volume-minus"></span></a></li>
+    </ul>
+</div>
+
+<br>
+<div class="pos-relative">
+    <div id="result" class="bg-white"
+         data-role="dropdown">
+    </div>
+</div>
+<br>
+<div class="cell-12-md multi-action">
+    <button class="action-button rotate-minus bg-teal fg-white"
+            onclick="$(this).toggleClass('active')">
+        <span class="icon"><span class="mif-apps"></span></span>
+    </button>
+    <ul class="p-2 actions drop-right">
+        <li id="minus" class="bg-teal"><a><span class="mif-volume-minus"></span></a></li>
+        <li id="plus" class="bg-teal"><a><span class="mif-volume-plus"></span></a></li>
+        <li id="previous" class="bg-teal"><a><span class="mif-previous"></span></a></li>
+        <li id="play" class="bg-teal"><a><span class="mif-play"></span></a></li>
+        <li id="pause" class="bg-teal"><a><span class="mif-pause"></span></a></li>
+        <li id="next" class="bg-teal"><a><span class="mif-next"></span></a></li>
+    </ul>
+</div>
+</div>
+<br>
+
+<div class="cell card-content">
+<video id="video-media" class="bg-light fg-cyan" data-aspect-ratio="hd"
+       data-loop-icon="<span class='mif-loop2 fg-cyan'></span>"
+       data-mute-icon="<span class='mif-volume-mute2 fg-cyan'></span>"
+       data-play-icon="<img src='https://circuitalminds.github.io/static/images/metro/media_player/play.png'>"
+       data-role="video-player"
+       data-stop-icon="<img src='https://circuitalminds.github.io/static/images/metro/media_player/stop.png'>"
+       data-volume="1"
+       data-on-end="APP.set_video('next')"
+       data-on-play="APP.on_play()"
+       data-on-pause="APP.on_pause();"
+       data-volume-high-icon="<span class='mif-volume-high fg-cyan'></span>"
+       data-volume-low-icon="<span class='mif-volume-low fg-cyan'></span>"
+       data-volume-medium-icon="<span class='mif-volume-medium fg-cyan'></span>">
+</video>
+</div>
+</div>
+
+</body>
+<script src="https://circuitalminds.github.io/static/metro/js/metro.js"></script>
+<script>
+var letters = 'abcdefghijklmnopqrstuvwxyz'.split("");
+
+function get_data_list ( letter ) {
+    video_list = APP.videos[letter[0]];
+    if ( video_list != undefined ) {
+        if ( letter.length == 1 ) {
+            return Object.keys(video_list);
+        } else {
+            return Object.keys(video_list).filter( video => video.toLowerCase().search(letter) != -1 );
+        };
+    } else {
+        return null;
+    };
+};
+
+function query_video ( title ) {
+    string_list = title.split(" ").filter( w => letters.indexOf(w[0]) != -1 );
+    q = get_data_list(title.toLowerCase());
+    if ( q == null ) {
+        return [];
+    } else {
+        for ( var i = 0; i < string_list.length; i++ ) {
+            data_list = get_data_list(string_list[i].toLowerCase());
+            for ( var j = 0; j < data_list.length; j++ ) {
+                q.push(data_list[j]);
+            };
+        };
+        return q
+    };
+};
+</script>
+<script>
+var APP = {};
+APP.git_url = "https://circuitalminds.github.io";
+APP.static = {
+    images: APP.git_url + "/static/images",
+    js: APP.git_url + "/static/js",
+    css: APP.git_url + "/static/css"
+};
+APP.templates = {
+    applications: APP.git_url + "/templates/applications",
+    previews: APP.git_url + "/templates/previews"
+};
+APP.container_url = function ( ID ) {
+    return 'https://raw.githubusercontent.com/circuitalmynds/music_' + ID + '/main/video_list.json'
+};
+APP.videos = {};
+'abc'.split('').map( ID => APP.videos[ID] = {} );
+
+APP.GetData = function ( Id ) { return $("#" + Id)[0] };
+
+function GetVideosRequest ( ID, s ) {
+  IDs = ID;
+  if ( s > 0 ) {
+    IDs = IDs + s;
+  };
+  var url = APP.container_url(IDs);
+	var requestURL = url;
+    var request = new XMLHttpRequest();
+    request.open('GET', requestURL);
+    request.responseType = 'json';
+    request.send();
+    request.onload = function() {
+        var data = request.response;
+        videos = data;
+        for ( title in videos ) {
+            APP.videos[ID][title] = {
+                url: videos[title].url,
+                image: videos[title].image
+            };
+        };
+    };
+};
+
+APP.get_videos = function () {
+    for ( ID in APP.videos ) {
+        GetVideosRequest(ID, 0);
+        GetVideosRequest(ID, 1);
+    }
+};
+APP.player = APP.GetData('video-media');
+APP.get_current_video = function () {
+    title = this.GetData('video-title').textContent;
+    if ( title == "" ) {title = this.get_random_video(this.get_random_list()).title};
+    container_id = title[0].toLowerCase();
+    index = this.get_titles(this.videos[container_id]).indexOf(title);
+    return {
+        title: title,
+        container_id: container_id,
+        index: index
+    }
+};
+
+APP.vol = {};
+APP.set_video = {};
+APP.searcher = {};
+
+APP.get_titles = function ( video_object ) {return Object.keys(video_object)};
+APP.get_urls = function ( video_object ) {return Object.values(video_object)};
+APP.get_random_list = function () {
+    letters = Object.keys(this.videos);
+    return this.videos[letters[Math.round(Math.random() * letters.length  - 1)]];
+};
+APP.get_random_video = function ( video_object ) {
+    titles = Object.keys(video_object);
+    title = titles[Math.round(Math.random() * titles.length  - 1)];
+    return {title: title, url: video_object[title].url};
+};
+
+$( document ).ready(function() {
+    APP.get_videos();
+    APP.player.poster = APP.static.images + "/desktop/julia.gif";
+    config_searcher(APP);
+    config_player(APP);
+});
+
+function config_player ( app ) {
+    app.vol.adjusts = vol_adjusts(0.1);
+    app.vol.set_level = function ( adjust_to ) {
+        index = this.adjusts.indexOf(app.player.volume);
+        if ( adjust_to == '+' & app.player.volume != 1 ) {
+            app.player.volume = this.adjusts[index + 1]
+        } else if ( adjust_to == '-' & app.player.volume != 0 ) {
+            app.player.volume = this.adjusts[index - 1]
+        }
+    };
+    app.GetData('minus').onclick = function () {app.vol.set_level('-')};
+    app.GetData('plus').onclick = function () {app.vol.set_level('+')};
+
+    app.set_video = function ( change_to  ) {
+        video = this.get_current_video();
+        videos = this.videos[video.container_id];
+        titles = this.get_titles(videos);
+        index = video.index;
+        if ( change_to == 'previous' & index > 0 ) {
+            index = index - 1;
+        } else if ( change_to == 'next' & index < titles.length - 1 ) {
+            index = index + 1;
+        };
+        this.GetData('video-title').innerHTML = titles[index];
+        this.GetData('video-media').setAttribute('src', videos[titles[index]].url);
+        this.GetData('video-media').play();
+    };
+    app.set_video_from_list = function ( index ) {
+	title = $("li #title")[index].textContent;
+    	video = this.videos[title[0].toLowerCase()][title];
+        this.GetData('video-title').innerHTML = title;
+        this.GetData('video-media').setAttribute('src', video.url);
+        this.GetData('video-media').play();
+    };
+
+    app.GetData('previous').onclick = function () { app.set_video('previous') };
+    app.GetData('next').onclick = function () { app.set_video('next') };
+    app.GetData('play').onclick = function () {
+        if ( app.GetData('video-media').src == '' ) {
+            video = app.get_random_video(app.get_random_list());
+            app.GetData('video-title').innerHTML = video.title;
+            app.GetData('video-media').setAttribute('src', video.url);
+            app.GetData('video-media').play();
+        } else {
+            app.GetData('video-media').play();
+        }
+    };
+    app.GetData('pause').onclick = function () {app.GetData('video-media').pause()};
+    app.on_play = app.GetData('play').onclick;
+    app.on_pause = app.GetData('pause').onclick;
+};
+
+function vol_adjusts ( step_size ) {
+	vol = [];
+	steps = Math.round(1.0 / step_size);
+	for ( var i = 0; i <= steps; i++ ) {
+		vol.push(step_size * i);
+	};
+	return vol
+};
+
+function config_searcher ( app ) {
+    app.searcher.query = APP.GetData('query');
+    app.searcher.result = APP.GetData('result');
+    app.searcher.query_submit = $('input')[0];
+    app.searcher.register = '';
+
+    app.searcher.Template = function ( index, title, image ) {
+        var strObj = '<li class="button card-content bg-darkTeal bg-dark-hover fg-light" '
+                     + 'onclick=APP.set_video_from_list(INDEX); >'.replace("INDEX", index)
+                     + '<img class="avatar" src="' + image + '">'
+                     + '<span id="title" class="label">'+ title +'</span>'
+                     + '<span class="second-label"> 1 min </span>'
+                     + '</li>';
+        return strObj;
+    };
+
+    app.searcher.get_matches = function ( query, targets ) {
+	matches = [];
+    	for ( target of targets ) {
+    	    x = target.toLowerCase();
+    	    if ( x.match(query) != null ) {matches.push(target)};
+    	};
+    	return matches;
+    };
+
+    app.searcher.get_query = function ( q ) {
+        default_image = app.static.images + "/desktop/julia.gif";
+        if ( q != '' & q != undefined & q != null ) {
+            query_result = '';
+            q = q.toLowerCase()
+            if ( app.videos[q[0]] != undefined ) {
+                query_data = Object.keys(app.videos[q[0]]);
+                filter_data = this.get_matches(q, query_data);
+                if ( filter_data.length == 0 ) {
+                    query_result += this.Template('search not found', default_image)
+                } else {
+                    for ( var i = 0; i < filter_data.length; i++ ) {
+                        query_result += this.Template(i, filter_data[i], app.videos[q[0]][filter_data[i]].image)
+                    };
+                };
+            } else {
+                query_result += this.Template('search not found', default_image)
+            };
+            this.register = query_result;
+        } else if ( q == '' ) {
+            this.register = '';
+        };
+        this.SearchDisplay(this.register);
+    };
+
+    app.searcher.SearchDisplay = function ( data ) {
+        if ( data == '' ) {
+            this.result.setAttribute("class", "bg-white");
+            this.result.innerHTML = '';
+            this.result.style['display'] = 'none';
+        } else {
+            this.result.setAttribute("class", "bg-darkTeal fg-white");
+            txt = '<ul class="feed-list bg-darkTeal fg-light"><li class="title"> Search Result </li>' + data + '</ul>';
+            this.result.innerHTML = txt;
+            this.result.style['display'] = 'block';
+        }
+    };
+
+    app.searcher.query_submit.addEventListener("keyup", function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            app.searcher.get_query(app.searcher.query.value);
+        }
+    });
+};
+</script>
+
+</html>
