@@ -1,55 +1,55 @@
 from api_config import CircuitalMinds
-from database import query_books
+
 
 circuitalminds = CircuitalMinds()
 server = circuitalminds.get_server()
-api_modules = server.modules
-settings = server.settings
-app = server.app
-api = api_modules.Api(app)
+modules = server.modules
+app, api, query_tools = server.app, server.api, server.query_tools
+db, books = server.set_books(app=app, init_db= modules.SQLAlchemy)
+login, session, socket, run = circuitalminds.init_socket(app)
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_BINDS'] = query_books.binds
-
-database = query_books.model_names
-query_books.set_books(app=app, init_db=api_modules.SQLAlchemy)
-api_modules.CORS(app=app)
-login = api_modules.LoginManager(app=app)
-session = app.session_interface
-socket = api_modules.SocketIO(app, manage_session=False)
+request, jsonify, resource = modules.request, modules.jsonify, server.modules.Resource
 
 
-class API(api_modules.Resource):
+class API(resource):
 
     def __init__(self):
-        self.request = api_modules.request
-        self.options = {"add": lambda query: self.get_data_to_add(query=query),
-                        "delete": lambda query: self.get_data_to_delete(query=query),
-                        "update": lambda query: self.get_data_to_update(query=query),
-                        "get": lambda query: self.get_data_by_query(query=query)
-                        }
-        self.select_option = lambda option, query: self.options[option](query=query)
+        self.data = {}
 
-    def get_request_function(self):
-        if self.request.method == "POST":
-            return lambda argument: self.request.form[argument]
+    @staticmethod
+    def query_response(query, option):
+        if query in list(books) and option in list(query_tools):
+            [book, query_function] = books[query], query_tools[option]
+            args = book.args
+            args.extend([book.repr, book.secondary_repr])
+            get_request = request.form if request.method == "POST" else request.args.get
+            request_data = {arg: get_request(arg) for arg in args}
+            return query_function(db=db, book=book, data=request_data)
         else:
-            return lambda argument: self.request.args.get(argument)
+            return None
 
     def get(self, query, option):
-        check_query, check_option = query in list(database.keys()), option in list(self.options.keys())
-        if all([check_query, check_option]):
-            return api_modules.jsonify(self.select_option(option=option, query=query))
+        response_data = self.query_response(query, option)
+        if response_data is None:
+            return jsonify({"Response": "Bad Request"})
         else:
-            causes = []
-            if check_query is False:
-                causes.append(f" [register with {query} not found in database] ")
-            if check_option is False:
-                causes.append(f" [option {option} not found] ")
-            return api_modules.jsonify({"Response": "".join(causes)})
+            return jsonify(response_data)
 
 
 api.add_resource(API, "/get/<query>/<option>")
 
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    info = {}
+    for name in list(books):
+        info[name] = {}
+        for opt in list(query_tools):
+            info[name][opt] = f"/get/{name}/{opt}?" + '&'.join([
+                "{key}=value".format(key=arg) for arg in books[name].args
+            ])
+    return info
+
+
 if __name__ == '__main__':
-    socket.run(app, **settings)
+    run()

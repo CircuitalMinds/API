@@ -1,13 +1,9 @@
 import os
 import requests
-from . import video, container, youtube
-
-Analyzer = youtube.Analyzer
+from bs4 import BeautifulSoup as Analyzer
 
 
 class VideoManager:
-    container = container.Container
-    container.video = video.Video
 
     def __init__(self, path):
         self.path = path
@@ -35,6 +31,20 @@ class VideoManager:
                     "wikidata": set_data(f"{container_path}/wikidata"),
                     "metadata": set_data(f"{container_path}/metadata")
                 }
+
+    def update_containers(self, file_handler):
+        video_data = {}
+        for container_id in self.ids:
+            container_data = self.get_container_data(container_id)
+            video_data.update(container_data['video_data'])
+            file_handler.save_file(
+                path="../video_app/video_data.json",
+                data=video_data
+            )
+            file_handler.save_file(
+                path=f"{self.__dict__[container_id]['path']}/info_container.json",
+                data=container_data['info_container']
+            )
 
     def get_container_data(self, container_id):
         data = {"info_container": self.get_file_sizes(container_id), "video_data": {}}

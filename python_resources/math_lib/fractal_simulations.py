@@ -2,7 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import warnings
+from matplotlib import cm
+import matplotlib as mpl
 warnings.filterwarnings("ignore")
+
+
+class MplColorHelper:
+
+    def __init__(self, cmap_name, start_val, stop_val):
+        self.cmap_name = cmap_name
+        self.cmap = plt.get_cmap(cmap_name)
+        self.norm = mpl.colors.Normalize(vmin=start_val, vmax=stop_val)
+        self.scalarMap = cm.ScalarMappable(norm=self.norm, cmap=self.cmap)
+
+    def get_rgb(self, val):
+        return self.scalarMap.to_rgba(val)
 
 
 class FractalSimulations:
@@ -74,7 +88,7 @@ class FractalSimulations:
     @staticmethod
     def start_animation(simulator, z, frames, interval):
         z_re, z_im = z["re"], z["im"]
-        fig = plt.figure(figsize=(10, 10))
+        fig = plt.figure(figsize=(10, 10), frameon=False)
         ax = plt.axes()
         ax.set_xticks([])
         ax.set_yticks([])
@@ -84,7 +98,8 @@ class FractalSimulations:
             for i in range(len(z_re)):
                 for j in range(len(z_im)):
                     w[i, j] = simulator(i, j, step)
-            img = ax.imshow(w.T, interpolation="hamming", cmap='twilight_shifted')
+            img = ax.imshow(w.T, interpolation="hamming", cmap='Spectral_r')
             return [img]
         anim = animation.FuncAnimation(fig, dynamic_function, frames=frames, interval=interval, blit=True)
+        plt.show()
         return anim

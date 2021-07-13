@@ -1,23 +1,44 @@
-class System:
+def join_path(path_a, path_b):
+    import os
+    return os.path.join(path_a, path_b)
+
+
+def is_file(file_path):
+    import os
+    return os.path.isfile(file_path)
+
+
+def is_dir(dir_path):
+    import os
+    return os.path.isdir(dir_path)
+
+
+class SystemBrowser:
 
     @staticmethod
     def goto(path):
         from subprocess import getoutput
-        import os
         current_directory = {"files": {}, "directories": {}}
         commands = " && ".join([
             f"cd {path}", "ls"
         ])
         add_data = lambda dir_path: current_directory["files"].update({
             dir_path.split("/")[-1]: dir_path
-        }) if os.path.isfile(dir_path) else current_directory["directories"].update({
+        }) if is_file(dir_path) else current_directory["directories"].update({
             dir_path.split("/")[-1]: dir_path
         })
         for name in getoutput(commands).splitlines():
-            add_data(dir_path=os.path.join(path, name))
+            add_data(dir_path=join_path(path, name))
+        return current_directory
 
 
 class FileHandlers:
+    allowed_files = {
+        "documents": ["pdf", "txt", "md", "html", "json", "yml"],
+        "media": ["psd", "woff", "svg", "ttf", "ico", "png", "jpeg", "jpg", "gif", "mp4", "mp3"],
+        "scripts": ["py", "js", "css", "ipynb", "php", "map", "less", "sqlite3"]
+    }
+    ignored_files = ["environment", ".git", "__pycache__", ".idea"]
 
     @staticmethod
     def file_size(file_path):
@@ -31,7 +52,7 @@ class FileHandlers:
         size_data = dict()
         if size_unit == 'MB':
             factor = 1024.0 ** 2
-        get_size = lambda filename: float(stat(f'{path}/{filename}').st_size / factor)
+        get_size = lambda filename: float(stat(join_path(path, filename)).st_size / factor)
         for filename in listdir(path):
             size_data[filename] = get_size(filename=filename)
         return size_data
@@ -39,8 +60,8 @@ class FileHandlers:
     @staticmethod
     def date_dir(dir_path):
         from time import localtime
-        from os import stat, path
-        if path.isdir(dir_path) or path.isfile(dir_path):
+        from os import stat
+        if is_dir(dir_path) or is_file(dir_path):
             data = localtime(stat(dir_path).st_atime)
             return {
                 'day': data.tm_mday,
@@ -53,9 +74,9 @@ class FileHandlers:
 
     @staticmethod
     def move_file(from_path, to_path):
-        from os import rename, path
+        from os import rename
         check_paths = all(
-            any([path.isdir(name), path.isfile(name)]) for name in [from_path, to_path]
+            any([is_dir(name), is_file(name)]) for name in [from_path, to_path]
         )
         if check_paths:
             rename(from_path, to_path)
@@ -65,7 +86,7 @@ class FileHandlers:
     @staticmethod
     def create_directory(to_path):
         from os import path, mkdir
-        if path.isdir(to_path) is False:
+        if is_dir(to_path) is False:
             mkdir(to_path)
         else:
             pass

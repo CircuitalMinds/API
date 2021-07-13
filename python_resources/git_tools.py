@@ -102,4 +102,19 @@ def main():
 push_repo = lambda path: subprocess.getoutput(' && '.join([
     f"cd {path}", "git init", "git add .", "git commit -m 'auto'", "git push"
 ]))
-push_repo(path='../')
+
+"""
+echo "# storage_app" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/CircuitalMinds/storage_app.git
+git push -u origin main
+
+…or push an existing repository from the command line
+
+git remote add origin https://github.com/CircuitalMinds/storage_app.git
+git branch -M main
+git push -u origin main
+"""

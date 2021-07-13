@@ -1,27 +1,22 @@
-from . import models, query_tools
-from os import listdir
+from . import models
 
 
 class QueryBooks:
-    model_names = [name.replace('.sqlite3', '') for name in listdir('./database/books')]
-    binds = {name: f'sqlite:///database/books/{name}.sqlite3' for name in model_names}
-    handlers = query_tools
+
+    db_path = './database/books'
+    binds = {
+        name: f'sqlite:///database/books/{name}.sqlite3' for name in [
+            "user_register", "blog", "jupyter_app", "music_app"
+        ]
+    }
 
     def set_books(self, app, init_db):
         database = dict()
         db = init_db(app=app)
-        for name in self.model_names:
+        for name in list(self.binds):
             model = self.get_model(app=app, name=name)
             database[name] = model.__dict__[name]
-            db.__setattr__(name, model.__dict__[name])
-
-    def get_model_names(self):
-        import os
-        books_path = './database/books'
-        for name in os.listdir(books_path):
-            if name.endswith('sqlite3'):
-                name = name.replace('.sqlite3', '')
-                self.model_names.append(name)
+        return db, database
 
     @staticmethod
     def get_model(app, name):
@@ -31,58 +26,70 @@ class QueryBooks:
         db.create_all(bind=[name])
         return db
 
-    def get_data_to_add(self, book, args):
-        data = {}
-        arguments = book.args
-        for arg in args:
-            if arg is None:
-                return {"Response": f"{arg} not found in request"}
+    @staticmethod
+    def check_values(data, conditional=all):
+        return True if conditional([
+            value is not None for value in data.values()
+        ]) else False
+
+    @staticmethod
+    def query_filter(book, data):
+        if book.repr in list(data):
+            return book.query.filter(book.__dict__[book.repr] == data[book.repr]).first()
+        elif book.secondary_repr in list(data):
+            return book.query.filter(book.__dict__[book.secondary_repr] == data[book.secondary_repr]).first()
+        else:
+            return None
+
+    @staticmethod
+    def query_all(book):
+        return book.query.all()
+
+    def get(self, db, book, data):
+        if self.check_values(data, conditional=any):
+            return {
+                book_data.__dict__[book.repr]: {
+                    arg: book_data.__dict__[arg] for arg in book.args
+                } for book_data in self.query_filter(book, data)
+            }
+        else:
+            return {
+                book_data.__dict__[book.repr]: {
+                    arg: book_data.__dict__[arg] for arg in book.args
+                } for book_data in self.query_all(book)
+            }
+
+    def add(self, db, book, data):
+        if self.check_values(data):
+            data.update({
+                book.repr: len(self.query_all(book)) + 1
+            })
+            db.session.add(book(data=data))
+            db.session.commit()
+        else:
+            return None
+
+    def delete(self, db, book, data):
+        if self.check_values(data, conditional=any):
+            book_data = self.query_filter(book, data)
+            if book_data is None:
+                return None
             else:
-                data[arg] = arg
-
-    def get_data_to_delete(self, book, reprs):
-        data = {}
-        repr = book.repr
-        secondary_repr = book.secondary_repr
-        for to_repr in [repr, secondary_repr]:
-            repr_data = reprs
-            if repr_data is not None:
-                data[to_repr] = repr_data
-        if data == {}:
-            return {"Response": f"data to {repr} or {secondary_repr} not found in request"}
+                db.session.query(book).delete(book_data)
+                db.session.commit()
         else:
-            return
+            return None
 
-    def get_data_to_update(self, book):
-        with_repr = {}
-        argument_update = {}
-        secondary_repr = book.secondary_repr
-        for to_repr in [repr, secondary_repr]:
-            repr_data = book.repr
-            if repr_data is not None:
-                with_repr[to_repr] = repr_data
-                break
-        if with_repr == {}:
-            return {"Response": f"data to {repr} or {secondary_repr} not found in request"}
-        for argument in book.args:
-            if all([argument != repr, argument != secondary_repr]):
-                argument_data = book.args
-                if argument_data is not None:
-                    argument_update[argument] = argument_data
-        if argument_update == {}:
-            return {"Response": f"data to update not found in request"}
+    def update(self, db, book, data):
+        if self.check_values(data, conditional=any):
+            book_data = self.query_filter(book, data)
+            if book_data is None:
+                return None
+            else:
+                query_data = {
+                    arg: data[arg] if data[arg] is not None else book_data.__dict__[arg] for arg in book.args
+                }
+                db.session.query(book).update(query_data)
+                db.session.commit()
         else:
-            print(with_repr, argument_update)
-
-    def get_data_by_query(self, book):
-        data = {}
-        repr = book.repr
-        secondary_repr = book.secondary_repr
-        for repr_data in [repr, secondary_repr]:
-            if repr_data is not None:
-                data[repr_data] = repr_data
-                break
-        if data == {}:
-            return
-        else:
-            return
+            return None
