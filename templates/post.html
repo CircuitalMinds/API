@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas id="pixel"></canvas>
+
+<div class="container">
+    <div class="row">
+    <p>Cantidad de Números Primos \(\Phi (n)=\) <span id="var-pn"></span></p>
+    </div>
+    <div class="row">
+        <p>\(\displaystyle{ \pi = \sqrt{6 \cdot \prod_{i=1}^{\infty} \frac{1}{1-(p_{i})^{-2}} } = \prod_{i=1}^{\infty} f_{i}}\)</p>
+    </div>
+    <div class="row">
+        <p>\(\displaystyle{ \pi \approx \prod_{i=1}^{\Phi (n)} f_{i} = }\) <span id="var-pi"></span></p>
+    </div>
+    <div class="row">
+        <p> \(n=\) <span id="var-n"></span></p>
+    </div>
+    <div class="slidecontainer">
+        <input id='pn' value="10" type="range" class="slider" min="1" max="50" step="1" oninput="initCrib()"/>
+    </div>
+    <br>
+    <div class="row">
+    <canvas id='crib' width='505px' height='660px' style='display: inline-block; max-width: 100%; max-height: 100%;'></canvas>
+    </div>
+    <br>
+</div>
+
+</body>
+<script>
+// The function gets called when the window is fully loaded
+var canvasPix = document.getElementById("pixel");
+var contextPix = canvasPix.getContext("2d");
+
+// Define the image dimensions
+var widthPix = canvasPix.width;
+var heightPix = canvasPix.height;
+
+// Create an ImageData object
+var imagePix = contextPix.createImageData(widthPix, heightPix);
+
+mainPix(0);
+
+// Create the image
+function createPix(offset) {
+    // Loop over all of the pixels
+    for (var x=0; x<widthPix; x++) {
+        for (var y=0; y<heightPix; y++) {
+            // Get the pixel index
+            var pixindex = (y * widthPix + x) * 4;
+
+            // Generate a xor pattern with some random noise
+            var redP = ((x+offset) % 256) ^ ((y+offset) % 256);
+            var greenP = ((2*x+offset) % 256) ^ ((2*y+offset) % 256);
+            var blueP = 50 + Math.floor(Math.random()*100);
+
+            // Rotate the colors
+            blueP = (blueP + offset) % 256;
+
+            // Set the pixel data
+            imagePix.data[pixindex] = redP;     // Red
+            imagePix.data[pixindex+1] = greenP; // Green
+            imagePix.data[pixindex+2] = blueP;  // Blue
+            imagePix.data[pixindex+3] = 255;   // Alpha
+        }
+    }
+}
+
+// Main loop
+function mainPix(tframe) {
+    // Request animation frames
+    window.requestAnimationFrame(mainPix);
+
+    // Create the image
+    createPix(Math.floor(tframe / 10));
+
+    // Draw the image data to the canvas
+    contextPix.putImageData(imagePix, 0, 0);
+}
+
+var intervalID = window.setInterval(initCrib, 1000);
+function initCrib() {
+    var canvasCrib = document.getElementById("crib");
+    var ctxCrib = canvasCrib.getContext("2d");
+    var primo = 1;
+    var contPn = 0;
+    var pin = 1.0;
+    var nT = parseInt(document.getElementById("pn").value);
+    var sn = canvasCrib.width / 10;
+    canvasCrib.height = sn * nT
+    var grdA = ctxCrib.createLinearGradient(300, 0, 0, 100);
+    ctxCrib.beginPath();
+    grdA.addColorStop(0.1, "sienna");
+    grdA.addColorStop(0.5, "crimson");
+    grdA.addColorStop(0.7, "indianred");
+    grdA.addColorStop(1, "royalblue");
+    // Draw the initial triangle (black)
+    ctxCrib.strokeStyle = grdA;
+    ctxCrib.stroke();
+    ctxCrib.font = "15px Arial";
+    for (var i = 0; i < nT; i += 1) {
+        for (var j = 0; j < 10; j += 1) {
+            ctxCrib.rect(j * sn, i * sn, sn, sn);
+            if (primo == 2 || primo == 3 || primo == 5 || primo == 7) {
+                contPn += 1;
+                pin *= 1 / (1 - 1 / (primo ** 2));
+                ctxCrib.strokeText(primo, j * sn + sn / 4, i * sn + 3 * sn / 4);
+            } else if (primo > 1 && primo % 2 !== 0 && primo % 3 !== 0 && primo % 5 !== 0 && primo % 7 !== 0) {
+                contPn += 1;
+                pin *= 1 / (1 - 1 / (primo ** 2));
+                ctxCrib.strokeText(primo, j * sn + sn / 4, i * sn + 3 * sn / 4);
+            };
+            primo += 1;
+        };
+
+    };
+    document.getElementById("var-pn").innerHTML = contPn;
+    document.getElementById("var-pi").innerHTML = Math.sqrt(6 * pin);
+    document.getElementById("var-n").innerHTML = nT * 10;
+    ctxCrib.strokeStyle = grdA;
+    ctxCrib.stroke();
+}
+
+</script>
+</html>
