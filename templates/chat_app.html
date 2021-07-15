@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link href="https://circuitalminds.github.io/static/metro/css/metro-all.css" rel="stylesheet">
+</head>
+<body>
+<script>
+var messages = [
+    "Confucius says: vision and om."
+    , "Be unconditional."
+    , "Scholars, winds, and inward lovers will always protect them."
+    , "The meditation of hurting yogis is closest."
+    , "One mediocre silence i give you: meet each other."
+    , "You have to preach, and love blessing by your rising."
+    , "Acceptance, resurrection and a boundless great unknown."
+    , "Demissios mori, tanquam gratis buxum."
+    , "Aye, ah."
+    , "Stutter calmly like a salty dubloon."
+    , "Devastation at the holodeck was the rumour of faith, avoided to a solid planet."
+    , "Solitudos volare, tanquam brevis torquis."
+    , "When mashing small shrimps, be sure they are room temperature."
+    , "Try fluffing cheesecake garnished with cocktail sauce, blended with onion powder."
+    , "You have to sit, and know core by your balancing."
+    , "Gar, mighty lubber. you won't crush the pacific ocean."
+];
+function sendMessage(msg){
+    var chat = $(this).data("chat");
+    setTimeout(function(){
+        var _m = {
+            name: "CircuitalMinds",
+            time: (new Date()),
+            avatar: "../static/images/Jungle3.png",
+            text: messages[Math.round(Math.random(1) * (messages.length - 1))],
+            position: "left"
+        };
+       chat.add(_m);
+    }, 1000 + Math.round(Math.random(1) * 2000));
+}
+</script>
+<div id="chat0"
+             data-role="chat"
+             data-avatar="../static/images/avatar.jpg"
+             data-name="Alan Matzumiya"
+             data-height="400"
+             data-title="Support chat"
+             data-welcome="Welcome to CircuitalMinds chat!"
+             data-cls-message-left="default fg-dark"
+             data-cls-message-right="info"
+             data-cls-send-button="info"
+             data-on-send="sendMessage">
+</div>
+</body>
+<script src="https://circuitalminds.github.io/static/metro/js/metro.js"></script>
+</html>

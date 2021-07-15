@@ -39,16 +39,10 @@ class API(resource):
 api.add_resource(API, "/get/<query>/<option>")
 
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    info = {}
-    for name in list(books):
-        info[name] = {}
-        for opt in list(query_tools):
-            info[name][opt] = f"/get/{name}/{opt}?" + '&'.join([
-                "{key}=value".format(key=arg) for arg in books[name].args
-            ])
-    return info
+@app.route("/<route>", methods=["GET", "POST"])
+def home(route='github'):
+    routes = ['github', 'console_app', 'chat_app', 'inbox_app']
+    return modules.render_template(f"{route}.html")
 
 
 if __name__ == '__main__':

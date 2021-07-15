@@ -2,8 +2,6 @@ import io
 import random
 from flask import Flask, Response, request
 import numpy as np
-from numpy.linalg import linalg as la
-from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backends.backend_svg import FigureCanvasSVG
 from matplotlib.figure import Figure
 from matplotlib import rc

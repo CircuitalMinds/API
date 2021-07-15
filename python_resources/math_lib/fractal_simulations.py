@@ -5,7 +5,11 @@ import warnings
 from matplotlib import cm
 import matplotlib as mpl
 warnings.filterwarnings("ignore")
-
+from mpmath import *
+mp.dps = 5
+mp.pretty = False
+from matplotlib import rc
+rc('text', usetex=True)
 
 class MplColorHelper:
 
@@ -30,8 +34,8 @@ class FractalSimulations:
     def __init__(self, select_fractal, config=None):
         args = {"mandelbrot": dict(x_0=-2.0, y_0=-1.5, width=3, height=3, density=250),
                 "julia": dict(x_0=-2.0, y_0=-2.0, width=4, height=4, density=200)}
-        params = {"mandelbrot": dict(frames=45, interval=120, threshold=lambda step: round(1.15 * (step + 1)), r=None),
-                  "julia": dict(frames=100, interval=50, threshold=lambda step: 20, r=0.7885)}
+        params = {"mandelbrot": dict(frames=25, interval=200, threshold=lambda step: round(1.15 * (step + 1)), r=None),
+                  "julia": dict(frames=50, interval=200, threshold=lambda step: 50, r=0.7885)}
         self.config = {"fractal": select_fractal,
                        "z": dict(re=[], im=[]),
                        "args": dict(x_0=float, y_0=float, width=int, height=int, density=int),
@@ -103,3 +107,99 @@ class FractalSimulations:
         anim = animation.FuncAnimation(fig, dynamic_function, frames=frames, interval=interval, blit=True)
         plt.show()
         return anim
+
+
+class CustomGraph:
+
+    def __init__(self):
+        self.plt = plt
+
+    @staticmethod
+    def rgb_convert(color):
+        extreme_values = lambda c: 0 if c < 1 else 1
+        converter = lambda c: c / 255 if 1 < c < 255 else extreme_values(c)
+        return tuple([converter(c=ci) for ci in color])
+
+    def animation_config(self):
+        self.fig = self.plt.figure(figsize=(20, 20), frameon=True)
+        ax = self.plt.axes(xlim=(-3, 7), ylim=(-3.5, 3.5))
+        axis = self.fig.add_subplot(1, 1, 1)
+        N, dt = 50 * 20, 0.1
+
+        z_r = np.zeros(N + 1)
+        z_im = z_r.copy()
+        fz = np.linspace(0.0, N * dt, N + 1)
+        zf = lambda t: zeta(0.5 + fz[t] * j)
+        z = [zf(t) for t in np.arange(len(fz))]
+        for i in np.arange(len(z)):
+            z_r[i], z_im[i] = float(z[i].real), float(z[i].imag)
+        COL = MplColorHelper('Spectral_r', 2, 8)
+
+        axis.set_title('Well defined discrete colors')
+        axis.set_facecolor('teal')
+        #axis.plot(z_r, z_im)
+        ax.tick_params(labelcolor=self.rgb_convert([76, 182, 182]), labelsize=8)
+        ax.set_facecolor('black')
+        ax.xaxis.set_ticks_position('bottom')
+
+        ax.set_xticks(np.linspace(-3, 7, 10))
+        ax.set_yticks(np.linspace(-3.5, 3.5, 10))
+        ax.yaxis.set_ticks_position('left')
+        ax.spines['left'].set_position('zero')
+        ax.spines['left'].set_linewidth(1.0)
+        ax.spines['bottom'].set_position('zero')
+        ax.spines['bottom'].set_linewidth(1.0)
+        ax.spines['right'].set_color(self.rgb_convert([153, 213, 213]))
+        ax.spines['top'].set_color('red')
+        """
+        x = np.linspace(-np.pi, np.pi)
+        y = np.exp(-0.05 * x**2)
+        
+        
+        point_1, = ax.plot([], [], marker='*', markersize=16, color=self.rgb_convert([153, 213, 213]))
+        """
+        line, = ax.plot([], [], lw=1, color=self.rgb_convert([153, 213, 213]))
+        point_0, = ax.plot([], [], marker='o', markersize=16, color=self.rgb_convert([153, 213, 213]))
+        ax.set_title('Re vs. Im', color='white')
+        title_txt = r'\textbf{$\displaystyle \mathcal{T} ( \mathcal{C}ircuital \otimes \mathcal{M}inds )$}'
+        plt.gcf().text(
+            0.5, 0.25, title_txt, fontsize=18, color=self.rgb_convert([153, 213, 213]), fontfamily='sans-serif')
+        plt.tight_layout()
+        scat = axis.scatter(z_r, z_im, s=50, c=COL.get_rgb(-z_r))
+        l = ([], [])
+        def anim_func(i):
+            l[0].append(z_r[i])
+            l[1].append(z_im[i])
+            line.set_data(l)
+            point_0.set_data([[z_r[i]], [z_im[i]]])
+            return line, point_0
+
+        anim = animation.FuncAnimation(self.fig, anim_func, frames=25, interval=450, blit=True)
+        plt.show()
+from numba import jit
+N, dt = 50 * 20, 0.1
+z_r = np.zeros(N + 1)
+z_im = z_r.copy()
+fz = np.linspace(0.0, N * dt, N + 1, dtype=np.complex)
+
+fz = np.linspace(0.0, N * dt, N + 1, dtype=np.complex)
+z = [zeta(0.5 + zeta(0.5 + fz[zi] * j) * j) for zi in np.arange(len(fz))]
+@jit(nopython=True)
+def f_zeta(N, dt):
+
+    for i in np.arange(len(z)):
+        z_r[i], z_im[i] = float(z[i].real), float(z[i].imag)
+
+from numba import jit
+import numpy as np
+import time
+
+x = np.arange(100).reshape(10, 10)
+
+@jit(nopython=True)
+def go_fast(a): # Function is compiled and runs in machine code
+    trace = 0.0
+    for i in range(a.shape[0]):
+        trace += np.tanh(a[i, i])
+    return a + trace
+go_fast(x)

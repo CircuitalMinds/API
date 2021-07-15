@@ -1,120 +1,86 @@
 import subprocess
-from pyfiglet import figlet_format
-from termcolor import cprint
+import requests
+from bs4 import BeautifulSoup as Analyzer
+from utils import Printer, FileHandlers
+style = Printer.text_style
 
-
-logo = 'Git-Commands'
-
-
-class Color:
-    NOTICE = '\033[91m'
-    END = '\033[0m'
-
-
-info = Color.NOTICE + '''
-Automate the process of using commands such as clone, commit, branch, pull, merge, blame and stash.\n''' + Color.END
+git = 'https://github.com'
+organization = 'CircuitalMinds'
+proprietary = 'alanmatzumiya'
+style(organization, color='cyan', font='slant')
+style("Organization:", color='magenta'), style(organization)
+style("Proprietary:", color='magenta'), style(proprietary)
+info_data = FileHandlers.open_file(path='info.json')
+options = [
+        'clone', 'commit', 'branch', 'pull', 'fetch', 'merge', 'reset', 'blame', 'stash'
+]
+style(f'\nrepositories:', color='magenta')
+[style(f"  {repo}: {url}") for repo, url in info_data['repositories'].items()]
+style(f'\ncommand options:', color='magenta')
+[style(f'  {i}. {opt}') for i, opt in enumerate(options)]
 
 
 def run(*args):
+    print(list(args))
+    """
     return subprocess.check_call(['git'] + list(args))
+    """
 
 
-def git_commands(command):
-
-    def clone(user, repo):
-        print("\nYou will be asked for the user first and then the repository name.\n")
-        user = input("User: ")
-        __user__ = f'{user}'
-        repo = input("Repository: ")
-        __repo__ = f'{repo}'
-        print("\nChoose the local path for your clone.")
-        local = input("Local path: ")
-        local_path = f'{local}'
-        subprocess.Popen(['git', 'clone', "https://github.com/" + __user__ + "/" + __repo__ + ".git", local_path])
-
-    def commit():
-        message = input("\nType in your commit message: ")
-        commit_message = f'{message}'
-        run("commit", "-am", commit_message)
-        run("push", "-u", "origin", "master")
-
-    def branch():
-        branch = input("\nType in the name of the branch you want to make: ")
-        br = f'{branch}'
-        run("checkout", "-b", br)
-        choices = lambda select_choice: dict(
-            y=run("push", "-u", "origin", br), n=print("\nOkay, goodbye!\n")
-        )[select_choice] if select_choice in ['y', 'n'] else print("\nInvalid command! Use y or n.\n")
-        choice = input("\nDo you want to push the branch right now to GitHub? (y/n): ")
-        choice = choice.lower()
-        choices(choice)
-
-    def pull():
-        print("\nPulls changes from the current folder if *.git is initialized.")
-        choices = lambda select_choice: dict(
-            y=run('pull'), n=print("\nOkay, goodbye!\n")
-        ) if select_choice in ['y', 'n'] else print("\nInvalid command! Use y or n.\n")
-        choice = input("\nDo you want to pull the changes from GitHub? (y/n): ")
-        choice = choice.lower()
-        choices(choice)
-
-    fetch = lambda: [print("\nFetches changes from the current folder."), run('fetch')]
-    merge = lambda: run("merge", input("\nType in the name of your branch: "))
-    reset = lambda: run("reset", input("\nType in the name of your file: "))
-    blame = lambda: run("blame", input("\nType in the name of the file: "))
-
-    def stash():
-        print("\nDo you want to save, list, pop, show, branch, clear or drop? ")
-        cmd = 'save, li, pop, show, branch, clear and drop'
-        print("\nCommands to use: " + cmd)
-        choice = input("\nType in the command you want to use: ")
-        choice = choice.lower()
-        choices = lambda select_choice: dict(
-            save=run("stash", "save", input("\nType in your stash message: ")),
-            li=run("stash", "li"),
-            pop=run("stash", "pop"),
-            show=run("stash", "show", "-p"),
-            branch = run("stash", "branch", input("\nType in the name of the branch you want to stash: ")),
-            clear = run("stash", "clear"),
-            drop = run("stash", "drop")
-        )[select_choice] if select_choice in [
-            'save', 'li', 'pop', 'show', 'branch', 'clear', 'drop'
-        ] else print("\nNot a valid command!")
-        choices(choice)
+def get_repositories():
+    request_data = Analyzer(requests.get(f'{git}/{organization}').text, 'html.parser')
+    repos = request_data.find_all('a', {'itemprop': 'name codeRepository'})
+    data = dict(repositories={
+        link.text.split()[0]: git + link.get("href") for link in repos
+    })
+    info_data.update(data)
+    FileHandlers.save_file(path='info.json', data=info_data)
+    return info_data
 
 
-def main():
-    cprint(figlet_format(logo, font='slant'), 'green')
-    print(info + "\n")
-    choices = [
-        'clone', 'commit', 'branch', 'pull', 'fetch', 'merge', 'reset', 'blame', 'stash'
+commit = lambda message: f'git commit -m "{message}"'
+pull = lambda: "pull"
+fetch = lambda: [print("\nFetches changes from the current folder."), run('fetch')]
+merge = lambda: run("merge", input("\nType in the name of your branch: "))
+reset = lambda: run("reset", input("\nType in the name of your file: "))
+blame = lambda: run("blame", input("\nType in the name of the file: "))
+
+
+def create_repo(name):
+    return ' && '.join([
+        f'echo "# {name}" >> README.md', "git init",
+        "git add README.md",
+        commit('first commit'),
+        "git branch -M main",
+        f"git remote add origin {git}/{organization}/{name}.git"
+        "git push -u origin main"
+    ])
+
+
+def push_repo(name):
+    return ' && '.join([
+        f'git remote add origin {git}/{organization}/{name}.git',
+        'git branch -M main',
+        'git push -u origin main'
+    ])
+
+
+def stash():
+    choices = {
+        'save': lambda: "\nType in your stash message: ",
+        'li': '', 'pop': '',
+        'show': '-p',
+        'branch': lambda: "\nType in the name of the branch you want to stash: ",
+        'clear': '', 'drop': ''
+    }
+    style(f'\nselect choice:', color='magenta')
+    [style(f'  {i}. {opt}') for i, opt in enumerate(choices)]
+
+    on_select = lambda selected: ["stash", selected] + [
+        input(choices[selected]()) if callable(choices[selected]) else choices[selected]
     ]
-    print("Commands to use: " + ', '.join(choices))
-    choose_command = input("Type in the command you want to use: ")
-    choose_command = choose_command.lower()
-    git_commands(choose_command) if choose_command in choices else print(
-        "\nNot a valid command!"
-    ), print(
-        "\nUse " + ', '.join(choices)
-    )
-
-
-push_repo = lambda path: subprocess.getoutput(' && '.join([
-    f"cd {path}", "git init", "git add .", "git commit -m 'auto'", "git push"
-]))
-
-"""
-echo "# storage_app" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/CircuitalMinds/storage_app.git
-git push -u origin main
-
-…or push an existing repository from the command line
-
-git remote add origin https://github.com/CircuitalMinds/storage_app.git
-git branch -M main
-git push -u origin main
-"""
+    choice = input("\nType in the command you want to use: ")
+    commands = on_select(choice.lower())
+    if '' in commands:
+        commands.remove('')
+    run(commands)

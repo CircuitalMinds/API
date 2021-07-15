@@ -38,7 +38,7 @@ class FileHandlers:
         "media": ["psd", "woff", "svg", "ttf", "ico", "png", "jpeg", "jpg", "gif", "mp4", "mp3"],
         "scripts": ["py", "js", "css", "ipynb", "php", "map", "less", "sqlite3"]
     }
-    ignored_files = ["environment", ".git", "__pycache__", ".idea"]
+    ignored_files = ["environment", ".git", "__pycache__", ".idea", ".pyc"]
 
     @staticmethod
     def file_size(file_path):
@@ -133,12 +133,12 @@ class FileHandlers:
         return data
 
     @staticmethod
-    def directory_tree(path, by_filter=None):
+    def directory_tree(path, show_all=True):
         from subprocess import getoutput
         from yaml import load, FullLoader
         out = getoutput(f'cd {path} && tree -J')
         outfile = load(out, Loader=FullLoader)[0]['contents']
-        if by_filter is None:
+        if show_all is None:
             return outfile
         else:
             return list(filter(lambda file_i: "contents" in list(file_i), outfile))
@@ -168,3 +168,16 @@ class Iterators:
         return {i: data[i] for i in list(
             filter(filter_function, data)
         )}
+
+
+class Printer:
+
+    @staticmethod
+    def text_style(data_text, color='cyan', font=None):
+        from pyfiglet import figlet_format
+        from termcolor import cprint
+        text = '\n'.join(data_text) if type(data_text) == list else data_text
+        if font is None:
+            return cprint(text, color)
+        else:
+            return cprint(figlet_format(text, font=font), color)

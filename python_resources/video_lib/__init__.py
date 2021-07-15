@@ -1,4 +1,5 @@
 from .video_manager import VideoManager
+from .container import Container
 from . import youtube, finders
 
 

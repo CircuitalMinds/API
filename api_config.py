@@ -8,7 +8,7 @@ config = dict(
         'SQLALCHEMY_TRACK_MODIFICATIONS': False, 'SQLALCHEMY_BINDS': query_books.binds
     },
     imports={
-        "flask": ['Flask', 'jsonify', 'request', 'send_file', 'render_template'],
+        "flask": ['Flask', 'jsonify', 'request', 'send_file', 'render_template', 'redirect', 'url_for'],
         "flask_restful": ["Resource", "Api"],
         "flask_sqlalchemy": ["SQLAlchemy"],
         "flask_cors": ["CORS"],

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link href="https://circuitalminds.github.io/static/metro/css/metro-all.css" rel="stylesheet">
+</head>
+<body class="bg-dark fg-white">
+<div class="row m-2 bg-white fg-teal h-100" style="font-family: Consolas, monospace;">
+<div class="cell">
+        <div class="cell card-header p-2 h-10"><h3>Python Console</h3></div>
+        <div class="row m-1 h-50">
+            <div class="cell-md-6">
+                <div contenteditable="true" class="p-1 border bd-darkTeal bg-gray fg-darkTeal h-100" id="std-in"></div>
+            </div>
+            <div class="cell-md-6">
+                <div class="p-1 border bd-darkTeal bg-gray fg-darkTeal h-100" id="std-out"></div>
+            </div>
+        </div>
+
+	<div class="row m-2">
+	<div id="run" class="cell-md-3 border bd-darkTeal fg-darkTeal fg-light-hover bg-light bg-teal-hover text-center">
+	Run Script
+	</div>	
+	<div class="cell-md-9">
+	<input type="file" data-role="file" data-cls-caption="bg-gray fg-white" data-cls-button="bg-darkTeal fg-white">
+	</div>
+	</div>
+    <br><br><br><br><br>
+</div>
+</div>
+</body>
+<script src="https://circuitalminds.github.io/static/metro/js/metro.js"></script>
+<script src="./console_app.js"></script>
+</html>

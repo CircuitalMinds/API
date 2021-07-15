@@ -43,6 +43,13 @@ def get_video_metadata(video_id):
     )
 
 
-def downloader(video_title, downloads_path):
-    command = f'cd {downloads_path} && youtube-dl -f mp4 "ytsearch:{video_title}"'
-    os.system(command)
+def downloader(video, downloads_path='./'):
+    command = ''
+    if "title" in list(video):
+        command += f'cd {downloads_path} && youtube-dl -f mp4 "ytsearch:{video["title"]}"'
+    elif "id" in list(video):
+        command += f'cd {downloads_path} && youtube-dl -f mp4 {yt_url}/watch?v={video["id"]}'
+    if command != '':
+        print(os.system(command))
+    else:
+        pass
