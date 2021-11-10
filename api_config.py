@@ -15,6 +15,7 @@ class CircuitalMinds:
 
     def get_server(self):
         app = Flask(self.__name__, template_folder="./templates")
+        app.config.update(config['environment'])
         api = Api(app)
         query_tools = query_books()
         server = {

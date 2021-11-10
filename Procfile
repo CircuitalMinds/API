@@ -1,1 +1,1 @@
-web: gunicorn circuitalminds:circuitalminds
+web: gunicorn app:app
