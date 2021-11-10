@@ -42,14 +42,12 @@ class API(Resource):
             })
 
 
-api.add_resource(API, "/get/<query>")
-
-
 @app.route("/", methods=["GET", "POST"])
 def home():
-
     return render_template(f"github.html")
 
 
+api.add_resource(API, "/get/<query>")
+
 if __name__ == '__main__':
-    app.run(**config["production"])
+    app.run()
