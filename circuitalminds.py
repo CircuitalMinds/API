@@ -38,7 +38,7 @@ class API(resource):
 
 api.add_resource(API, "/get/<query>/<option>")
 
-
+@app.route("/", methods=["GET", "POST"])
 @app.route("/<route>", methods=["GET", "POST"])
 def home(route='github'):
     routes = ['github', 'console_app', 'chat_app', 'inbox_app']
