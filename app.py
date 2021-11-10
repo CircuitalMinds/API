@@ -47,7 +47,6 @@ api.add_resource(API, "/get/<query>")
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-
     return render_template("github.html")
 
 
