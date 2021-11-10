@@ -46,4 +46,4 @@ def home(route='github'):
 
 
 if __name__ == '__main__':
-    run()
+    app.run(**circuitalminds.settings)
