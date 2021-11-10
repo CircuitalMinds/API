@@ -1,17 +1,16 @@
-from api_config import CircuitalMinds
-
-
+from flask import request, jsonify, render_template
+from flask_restful import Resource
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+from api_config import CircuitalMinds, config
 circuitalminds = CircuitalMinds()
 server = circuitalminds.get_server()
-modules = server.modules
-app, api, query_tools = server.app, server.api, server.query_tools
-db, books = server.set_books(app=app, init_db= modules.SQLAlchemy)
-login, session, socket, run = circuitalminds.init_socket(app)
-
-request, jsonify, resource = modules.request, modules.jsonify, server.modules.Resource
+app, api, query_tools, set_books = [server[i] for i in ("app", "api", "query_tools", "set_books")]
+CORS(app)
+db, books = set_books(app=app, init_db=SQLAlchemy)
 
 
-class API(resource):
+class API(Resource):
 
     def __init__(self):
         self.data = {}
@@ -28,22 +27,29 @@ class API(resource):
         else:
             return None
 
-    def get(self, query, option):
-        response_data = self.query_response(query, option)
-        if response_data is None:
-            return jsonify({"Response": "Bad Request"})
+    def get(self, query='all'):
+        if query == "all":
+            return jsonify({
+                name: [{
+                    arg: q.__dict__[arg] for arg in q.args
+                } for q in db.session.query(book).all()] for name, book in books.items()
+            })
         else:
-            return jsonify(response_data)
+            return jsonify({
+                query: [{
+                    arg: q.__dict__[arg] for arg in q.args
+                } for q in db.session.query(books[query]).all() if query in list(books)]
+            })
 
 
-api.add_resource(API, "/get/<query>/<option>")
+api.add_resource(API, "/get/<query>")
+
 
 @app.route("/", methods=["GET", "POST"])
-@app.route("/<route>", methods=["GET", "POST"])
-def home(route='github'):
-    routes = ['github', 'console_app', 'chat_app', 'inbox_app']
-    return modules.render_template(f"{route}.html")
+def home():
+
+    return render_template(f"github.html")
 
 
 if __name__ == '__main__':
-    app.run(**circuitalminds.settings)
+    app.run(**config["production"])

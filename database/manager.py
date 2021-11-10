@@ -12,6 +12,8 @@ class QueryBooks:
 
     def set_books(self, app, init_db):
         database = dict()
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['SQLALCHEMY_BINDS'] = self.binds
         db = init_db(app=app)
         for name in list(self.binds):
             model = self.get_model(app=app, name=name)
