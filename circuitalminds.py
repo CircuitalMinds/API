@@ -7,6 +7,13 @@ circuitalminds = CircuitalMinds()
 server = circuitalminds.get_server()
 app, api, query_tools, set_books = [server[i] for i in ("app", "api", "query_tools", "set_books")]
 CORS(app)
+
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    return render_template("github.html")
+
+
 db, books = set_books(app=app, init_db=SQLAlchemy)
 
 
@@ -42,12 +49,6 @@ class API(Resource):
             })
 
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    return render_template(f"github.html")
-
-
-api.add_resource(API, "/get/<query>")
 
 if __name__ == '__main__':
     app.run()
