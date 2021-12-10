@@ -1,0 +1,14 @@
+{
+    "books": ["users", "posts", "videos"],
+    "server": {
+        "debug": false,
+        "host": "circuitalminds.herokuapp.com",
+        "port": 80
+    },
+    "environment": {
+        "SQLALCHEMY_TRACK_MODIFICATIONS": false,
+        "SQLALCHEMY_BINDS": {},
+        "secret_key": "circuitalminds",
+        "session_type": "filesystem"
+    }
+}

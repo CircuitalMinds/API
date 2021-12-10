@@ -1,183 +1,125 @@
-def join_path(path_a, path_b):
-    import os
-    return os.path.join(path_a, path_b)
+from os import stat, listdir, remove, walk
+from os.path import join, isdir, isfile, getmtime
+from time import ctime
+from zipfile import ZipFile
+from json import load, dumps
+from subprocess import getoutput
+folder_size = 0.0
 
 
-def is_file(file_path):
-    import os
-    return os.path.isfile(file_path)
+def get_folder_data(name):
+    folder_path = name if name.startswith("./") else f"./{name}"
+    if isdir(folder_path):
+        def folder_data(*args, **kwargs):
+            xpath = join(*args)
+            for key in ("files", "folders"):
+                if key not in kwargs:
+                    kwargs[key] = []
+            for x in listdir(xpath):
+                d_path = join(xpath, x)
+                if isfile(d_path):
+                    size = stat(d_path).st_size * 1024 * 10e-10
+                    globals()["folder_size"] += size
+                    date = ctime(getmtime(d_path))
+                    kwargs["files"].append({"filename": x, "size": size, "date": date})
+                else:
+                    f_data = folder_data(d_path)
+                    f_data.update({"name": x, "path": d_path.split("./")[-1]})
+                    kwargs["folders"].append(f_data)
+            return kwargs
+        globals()["folder_size"] = 0.0
+        content = folder_data(folder_path)
+        return {"content": content, "total_size": globals()["folder_size"]}
+    else:
+        return {}
 
 
-def is_dir(dir_path):
-    import os
-    return os.path.isdir(dir_path)
+def search_file(name, data):
+    for i in data["files"]:
+        if i["filename"] == name:
+            return {"filename": name, "path": join(".", data["path"], name) if "path" in data else f"./{name}"}
+    for folder in data["folders"]:
+        for i in folder["files"]:
+            if i["filename"] == name:
+                return {"filename": name, "path": join(".", folder["path"], name) if "path" in folder else f"./{name}"}
+        for i in folder["folders"]:
+            search_file(name, i)
+    return {}
 
 
-class SystemBrowser:
-
-    @staticmethod
-    def goto(path):
-        from subprocess import getoutput
-        current_directory = {"files": {}, "directories": {}}
-        commands = " && ".join([
-            f"cd {path}", "ls"
-        ])
-        add_data = lambda dir_path: current_directory["files"].update({
-            dir_path.split("/")[-1]: dir_path
-        }) if is_file(dir_path) else current_directory["directories"].update({
-            dir_path.split("/")[-1]: dir_path
-        })
-        for name in getoutput(commands).splitlines():
-            add_data(dir_path=join_path(path, name))
-        return current_directory
-
-
-class FileHandlers:
-    allowed_files = {
-        "documents": ["pdf", "txt", "md", "html", "json", "yml"],
-        "media": ["psd", "woff", "svg", "ttf", "ico", "png", "jpeg", "jpg", "gif", "mp4", "mp3"],
-        "scripts": ["py", "js", "css", "ipynb", "php", "map", "less", "sqlite3"]
-    }
-    ignored_files = ["environment", ".git", "__pycache__", ".idea", ".pyc"]
-
-    @staticmethod
-    def file_size(file_path):
-        from os import stat
-        return float(stat(file_path).st_size * 1024 ** -2)
-
-    @staticmethod
-    def size_dir(path, size_unit="MB"):
-        from os import stat, listdir
-        factor = 1.0
-        size_data = dict()
-        if size_unit == 'MB':
-            factor = 1024.0 ** 2
-        get_size = lambda filename: float(stat(join_path(path, filename)).st_size / factor)
-        for filename in listdir(path):
-            size_data[filename] = get_size(filename=filename)
-        return size_data
-
-    @staticmethod
-    def date_dir(dir_path):
-        from time import localtime
-        from os import stat
-        if is_dir(dir_path) or is_file(dir_path):
-            data = localtime(stat(dir_path).st_atime)
-            return {
-                'day': data.tm_mday,
-                'month':  data.tm_mon,
-                'year':  data.tm_year,
-                'time': f'{data.tm_hour}:{data.tm_min}:{data.tm_sec}'
-             }
-        else:
-            pass
-
-    @staticmethod
-    def move_file(from_path, to_path):
-        from os import rename
-        check_paths = all(
-            any([is_dir(name), is_file(name)]) for name in [from_path, to_path]
+def get_json(folder, filename):
+    folder_path = folder if folder.startswith("./") else f"./{folder}"
+    if isdir(folder_path):
+        file_path = join(
+            folder_path,
+            filename if filename.endswith(".json") else f"{filename}.json"
         )
-        if check_paths:
-            rename(from_path, to_path)
-        else:
-            pass
-
-    @staticmethod
-    def create_directory(to_path):
-        from os import path, mkdir
-        if is_dir(to_path) is False:
-            mkdir(to_path)
-        else:
-            pass
-
-    @staticmethod
-    def save_file(path, data):
-        filetype = path.endswith
-        if filetype('yaml'):
-            import yaml
-            with open(path, "w") as outfile:
-                yaml.dump(data, outfile, default_flow_style=False)
-        elif filetype('json'):
-            import json
-            with open(path, 'w') as outfile:
-                json_file = json.dumps(data, indent=4, sort_keys=True)
-                outfile.write(json_file)
-                outfile.close()
-        else:
-            with open(path, 'w') as outfile:
-                outfile.write(data)
-                outfile.close()
-
-    @staticmethod
-    def open_file(path):
-        filetype = path.endswith
-        if filetype('yml'):
-            import yaml
-            return yaml.load(open(path), Loader=yaml.FullLoader)
-        elif filetype('json'):
-            import json
-            return json.load(open(path))
-        else:
-            return open(path).read()
-
-    @staticmethod
-    def html_parser(file, target):
-        from bs4 import BeautifulSoup as Analyzer
-        parsed = Analyzer(file, 'html.parser')
-        data = {}
-        data[target] = {}
-        for tag in parsed.find_all(target):
-            print(tag.__dict__["attrs"])
-
-        return data
-
-    @staticmethod
-    def directory_tree(path, show_all=True):
-        from subprocess import getoutput
-        from yaml import load, FullLoader
-        out = getoutput(f'cd {path} && tree -J')
-        outfile = load(out, Loader=FullLoader)[0]['contents']
-        if show_all is None:
-            return outfile
-        else:
-            return list(filter(lambda file_i: "contents" in list(file_i), outfile))
+        if isfile(file_path):
+            return load(open(file_path))
+    else:
+        return {}
 
 
-class Iterators:
-
-    @staticmethod
-    def filter_data(data, key_list):
-        filtered = {}
-        lower = lambda key_data: key_data.lower()
-        check_attr = lambda name, target: name in target or target in name
-        for key in key_list:
-            filtered[key] = {
-                attr: data[attr] for attr in list(
-                    filter(lambda name: check_attr(name=lower(name), target=lower(key)), list(data))
-                )
-            }
-        return filtered
-
-    @staticmethod
-    def object_iterator(data):
-        return list(map(lambda key: data[key], data))
-
-    @staticmethod
-    def object_filter(data, filter_function):
-        return {i: data[i] for i in list(
-            filter(filter_function, data)
-        )}
+def save_json(folder, filename, data):
+    folder_path = folder if folder.startswith("./") else f"./{folder}"
+    if isdir(folder_path):
+        file_path = join(
+            folder_path,
+            filename if filename.endswith(".json") else f"{filename}.json"
+        )
+        with open(file_path, "w") as f:
+            f.write(dumps(
+                data,
+                indent=4, sort_keys=True, ensure_ascii=False
+            ))
+            f.close()
+    return
 
 
-class Printer:
+def save_file(folder, filename, data, extension=None):
+    folder_path = folder if folder.startswith("./") else f"./{folder}"
+    if isdir(folder_path):
+        file_path = join(
+            folder_path,
+            f"{filename}.{extension}" if extension else filename
+        )
+        with open(file_path, "w") as f:
+            f.write(data)
+            f.close()
+    return
 
-    @staticmethod
-    def text_style(data_text, color='cyan', font=None):
-        from pyfiglet import figlet_format
-        from termcolor import cprint
-        text = '\n'.join(data_text) if type(data_text) == list else data_text
-        if font is None:
-            return cprint(text, color)
-        else:
-            return cprint(figlet_format(text, font=font), color)
+
+def create_zip(folder_path):
+    if isdir(folder_path):
+        zip_path = folder_path + ".zip"
+        with ZipFile(zip_path, 'w') as zipObj:
+            for folderName, subfolders, filenames in walk(folder_path):
+                for filename in filenames:
+                    filePath = join(folderName, filename)
+                    zipObj.write(filePath)
+        return {"filename": zip_path.split("/")[-1], "path": zip_path}
+    else:
+        return {"response": "folder not found"}
+
+
+def remove_zip(zip_path):
+    remove(zip_path)
+    return
+
+
+def get_info_zip(zip_path):
+    name = zip_path.split('/')[-1]
+    folder_path = zip_path.replace(f"/{name}", "")
+    data = []
+    str_data = getoutput(f"cd {folder_path} && python -m zipfile -l ./{name}").splitlines()[1:]
+    for s in str_data:
+        y = s.split()
+        print(y)
+        data.append({
+            "filename": y[0],
+            "date": " ".join([y[1].replace("-", "/"), y[2]]),
+            "size": y[3]
+        })
+    print(data)
+    return data
+

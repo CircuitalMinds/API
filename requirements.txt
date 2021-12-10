@@ -1,8 +1,7 @@
-flask-cors
-flask_restful
 flask
+flask-cors
 flask_sqlalchemy
 gunicorn
 PyYAML
 requests
-Werkzeug==1.0.1
+Werkzeug

@@ -1,54 +1,50 @@
-from flask import request, jsonify, render_template
-from flask_restful import Resource
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
-from api_config import CircuitalMinds, config
-circuitalminds = CircuitalMinds()
-server = circuitalminds.get_server()
-app, api, query_tools, set_books = [server[i] for i in ("app", "api", "query_tools", "set_books")]
-CORS(app)
-db, books = set_books(app=app, init_db=SQLAlchemy)
+from builder import init_app, init_db, run, settings
+from database.handlers import get_data, add_data, update_data, delete_data, request_handler
+from flask import jsonify, send_file, request, redirect, url_for
+from drive import Storage, join
+app = init_app()
+db = init_db(app)
+storage = Storage()
 
 
-class API(Resource):
-
-    def __init__(self):
-        self.data = {}
-
-    @staticmethod
-    def query_response(query, option):
-        if query in list(books) and option in list(query_tools):
-            [book, query_function] = books[query], query_tools[option]
-            args = book.args
-            args.extend([book.repr, book.secondary_repr])
-            get_request = request.form if request.method == "POST" else request.args.get
-            request_data = {arg: get_request(arg) for arg in args}
-            return query_function(db=db, book=book, data=request_data)
-        else:
-            return None
-
-    def get(self, query='all'):
-        if query == "all":
-            return jsonify({
-                name: [{
-                    arg: q.__dict__[arg] for arg in q.args
-                } for q in db.session.query(book).all()] for name, book in books.items()
-            })
-        else:
-            return jsonify({
-                query: [{
-                    arg: q.__dict__[arg] for arg in q.args
-                } for q in db.session.query(books[query]).all() if query in list(books)]
-            })
-
-
-api.add_resource(API, "/get/<query>")
-
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def home():
-    return render_template("github.html")
+    host = "https://circuitalminds.github.io"
+    page = "drive"
+    return redirect(join(host, page))
+
+
+@app.route("/api/<query>/", methods=["GET"])
+@app.route("/api/<query>/<method>/", methods=["GET", "POST"])
+def api_query(query="", method=""):
+    handler = {
+        f.__name__.split("_")[0]: f
+        for f in (get_data, add_data, update_data, delete_data)
+    }
+    if query in db.books and method in handler:
+        return jsonify(handler[method](db, query))
+    else:
+        return jsonify({"response": "data invalid"})
+
+
+@app.route("/api/drive/", methods=["GET"])
+@app.route("/api/drive/<method>", methods=["GET", "POST"])
+def api_storage(method=""):
+    data = request_handler()
+    if method == "get" and "filename" in data:
+        file_data = storage.get(data["filename"])
+        if all([key in file_data for key in ("filename", "path")]):
+            return send_file(file_data["path"], download_name=file_data["filename"])
+        else:
+            return jsonify(file_data)
+    elif method == "upload":
+        files = request.files.getlist("files[]")
+        for fi in files:
+            storage.upload(fi)
+        return redirect(url_for("home"))
+    else:
+        return jsonify({"response": f"method {method} not allowed"})
 
 
 if __name__ == '__main__':
-    app.run(**config["production"])
+    run(app)

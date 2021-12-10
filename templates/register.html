@@ -6,31 +6,62 @@
     <title>test</title>
 </head>
 <body>
-{% for book in books %}
-    <h3>{{ book['name'] }}</h3>
-    {% for arg in book['args'] %}
-    <label>{{ arg }}</label>
-    <input type="text" value="test_value">
-    {%  endfor %}
-    <button value="{{ book['name'] }}" id="get" onclick='get_query(this.value)'>Get</button>
-    <button value="{{ book['name'] }}" id="delete" onclick="get_register(this.id, this.value)">Delete</button>
-    <button value="{{ book['name'] }}" id="add" onclick="get_register(this.id, this.value)">Add</button>
-    <button value="{{ book['name'] }}" id="update" onclick='get_register(this.id, this.value)'>Update</button>
-{%  endfor %}
 
-<h4 id="register-response"></h4>
+{% for name in books %}
+<p> {{ name }} </p>
+{% for method in books[name] %}
+<div id="{{ name }}-{{ method }}">
+    <input type="button" value="{{ method }}" onclick="requestData(
+    '/api/{{ name }}/{{ method }}',
+    Object.values(
+        $('#{{ name }}-{{ method }}')[0].querySelectorAll('input')
+    ).map( i => [i.name.split(' ').join(''), i.value.split(' ').join('')] )
+    );">
+    {% for arg in books[name][method].required %}
+    <label>{{ arg }} ( required ) </label><input type="text" name="{{ arg }}" value="{{ arg }}">
+    {% endfor %}
+    {% for arg in books[name][method].optional %}
+    <label>{{ arg }} ( optional ) </label><input type="text" name="{{ arg }}" value="">
+    {% endfor %}
+    <p id="{{ name }}-{{ method }}-response"></p>
+</div>
+{% endfor %}
+{% endfor %}
+
 </body>
 <script>
-function get_register ( name, option ) {
-    console.log(name, option);
+function requestData ( url, Data ) {
+    response = $("#" + url.replace("/api/", "").replace("/", "-") + "-response")[0];
+    Params = {};
+    for ( x of Data ) {
+        if ( x[1] != "" ) {
+            Params[x[0]] = x[1];
+        };
+    };
+    $.get(
+        url, Params,
+        function(data) {
+            response.innerHTML = JSON.stringify(data);
+        }
+    );
 };
 
-function get_query ( name ) {
-    var getQuery = $.get( '/get/' + name + '/get' );
-    getQuery.done( function( data ) {
-		var response_data = data.Response;
-        document.getElementById("register-response").innerHTML = JSON.stringify(response_data);
-	});
+function post ( id ) {
+    formObj = $("#" + id)[0];
+    urlData = "/api/" + id + "/users";
+    params = {
+        username: formObj.querySelector( "input[name=username]" ).value,
+        password: formObj.querySelector( "input[name=password]" ).value
+    };
+    $.post(
+        urlData,
+        params,
+        function ( data ) {
+            setTimeout( function () {
+                formObj.querySelector("#" + id + "-response").innerHTML = JSON.stringify(data);
+            }, 200);
+        }
+    );
 };
 </script>
 </html>

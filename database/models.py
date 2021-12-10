@@ -1,83 +1,115 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime
 
 
-def select_model(Model, name):
+def select_model(db, name):
+    Model = db.Model
 
-    class UserRegister(Model):
-        user_id = Column(Integer, primary_key=True, unique=True)
+    class Users(Model):
+        id = Column(Integer, primary_key=True, unique=True)
         username = Column(String(50), nullable=False, unique=True)
         password = Column(String(50), nullable=False)
-        __bind_key__ = 'user_register'
-        args = ["username", "password"]
-        repr = "user_id"
-        secondary_repr = "username"
+        __bind_key__ = 'users'
+        args = {
+            "all": ["username", "password"],
+            "get": {"required": ["username", "password"], "optional": []},
+            "add": {"required": ["username", "password"], "optional": []},
+            "update": {"required": ["username", "password", "new_password"], "optional": []},
+            "delete": {"required": ["username", "password"], "optional": []}
+        }
+        repr = "id"
 
         def __init__(self, data):
-            for arg in UserRegister.args:
-                self.__setattr__(arg, data[arg])
+            for k, v in data.items():
+                self.__setattr__(k, v)
+
+        @classmethod
+        def set_data(cls, data, method):
+            x = {}
+            for key in cls.args[method]["required"]:
+                if key in data:
+                    x[key] = data[key]
+                else:
+                    return {}
+            for key in cls.args[method]["optional"]:
+                if key in data:
+                    x[key] = data[key]
+            return x
 
         def __repr__(self):
-            return '<UserRegister %r>' % self.user_id
+            return '<Users %r>' % self.id
 
-    class Blog(Model):
-        post_id = Column(Integer, primary_key=True, unique=True)
-        title = Column(String(100), nullable=False, unique=True)
-        content = Column(Text, nullable=False)
-        date = Column(String(100), nullable=False)
-        picture = Column(String(100), nullable=False)
-
-        __bind_key__ = 'blog'
-        args = ["title", "date", "content", "picture"]
-        repr = "post_id"
-        secondary_repr = "title"
+    class Videos(Model):
+        id = Column(Integer, primary_key=True, unique=True)
+        title = Column(String(50), nullable=False, unique=True)
+        url = Column(String(50), nullable=False)
+        image = Column(String(50), nullable=False)
+        __bind_key__ = 'videos'
+        args = {
+            "all": ["title", "url", "image"],
+            "get": {"required": [], "optional": ["title", "url", "image"]},
+            "add": {"required": ["title", "url", "image"], "optional": []},
+            "update": {"required": ["title"], "optional": ["url", "image"]},
+            "delete": {"required": ["title"], "optional": ["url", "image"]},
+        }
+        repr = "id"
 
         def __init__(self, data):
-            for arg in Blog.args:
-                self.__setattr__(arg, data[arg])
+            for k, v in data.items():
+                self.__setattr__(k, v)
+
+        @classmethod
+        def set_data(cls, data, method):
+            x = {}
+            for key in cls.args[method]["required"]:
+                if key in data:
+                    x[key] = data[key]
+                else:
+                    return {}
+            for key in cls.args[method]["optional"]:
+                if key in data:
+                    x[key] = data[key]
+            return x
 
         def __repr__(self):
-            return '<Blog %r>' % self.post_id
+            return '<Videos %r>' % self.id
 
-    class MusicApp(Model):
-        video_id = Column(Integer, primary_key=True, unique=True)
-        video_title = Column(String(100), nullable=False)
-        video_url = Column(String(100), nullable=False)
-        video_image = Column(String(100), nullable=False)
-
-        __bind_key__ = 'music_app'
-        args = ["video_url", "video_title", "video_image"]
-        repr = "video_id"
-        secondary_repr = "video_title"
+    class Posts(Model):
+        id = Column(Integer, primary_key=True, unique=True)
+        title = Column(String(50), nullable=False, unique=True)
+        tags = Column(String(50), nullable=False)
+        url = Column(String(50), nullable=False)
+        image = Column(String(50), nullable=False)
+        date = Column(DateTime, default=datetime.utcnow)
+        __bind_key__ = 'posts'
+        args = {
+            "all": ["title", "tags", "url", "image"],
+            "get": {"required": [], "optional": ["title", "tags", "url", "image"]},
+            "add": {"required": ["title", "tags", "url", "image"], "optional": []},
+            "update": {"required": ["title"], "optional": ["tags", "url", "image"]},
+            "delete": {"required": ["title"], "optional": ["tags", "url", "image"]},
+        }
+        repr = "id"
 
         def __init__(self, data):
-            for arg in MusicApp.args:
-                self.__setattr__(arg, data[arg])
+            for k, v in data.items():
+                self.__setattr__(k, v)
+
+        @classmethod
+        def set_data(cls, data, method):
+            x = {}
+            for key in cls.args[method]["required"]:
+                if key in data:
+                    x[key] = data[key]
+                else:
+                    return {}
+            for key in cls.args[method]["optional"]:
+                if key in data:
+                    x[key] = data[key]
+            return x
 
         def __repr__(self):
-            return '<MusicApp %r>' % self.video_id
-
-    class JupyterApp(Model):
-        notebook_id = Column(Integer, primary_key=True, unique=True)
-        title = Column(String(100), nullable=False, unique=True)
-        topic = Column(String(100), nullable=False)
-        module = Column(String(100), nullable=False)
-        location = Column(String(100), nullable=False)
-        resources = Column(String(100), nullable=False)
-
-        __bind_key__ = 'jupyter_app'
-        args = ["title", "topic", "module", "location", "resources"]
-        repr = "notebook_id"
-        secondary_repr = "title"
-
-        def __init__(self, data):
-            for arg in JupyterApp.args:
-                self.__setattr__(arg, data[arg])
-
-        def __repr__(self):
-            return '<JupyterApp %r>' % self.notebook_id
-
-    model = {"user_register": UserRegister,
-             "blog": Blog,
-             "jupyter_app": JupyterApp,
-             "music_app": MusicApp}[name]
+            return '<Posts %r>' % self.id
+    model = {"users": Users, "videos": Videos, "posts": Posts}.get(name)
+    db.create_all(bind=[name])
     return model
