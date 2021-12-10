@@ -30,9 +30,11 @@ class Storage:
             folder_name = folder[0]
             if list(filter(
                 lambda x: x["filename"] == filename, self.directory["folders"][folder_name]
-            )): data.update({
-                "filename": filename, "path": join(self.path, folder_name, filename)
-            })
+            )):
+                data.update({
+                    "filename": filename, "path": join(self.path, folder_name, filename)
+                })
+                return data
             else:
                 return not_found
         else:
