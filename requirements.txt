@@ -2,6 +2,14 @@ flask
 flask-cors
 flask_sqlalchemy
 gunicorn
-PyYAML
 requests
 Werkzeug
+PyYAML
+numba
+mpmath
+imageio
+imageio-ffmpeg
+matplotlib
+bs4
+numpy
+scipy

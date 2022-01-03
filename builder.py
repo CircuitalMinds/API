@@ -13,40 +13,6 @@ settings["environment"].update({
 })
 
 
-def deployment_files():
-    requirements = """
-    flask
-    flask-cors
-    flask_sqlalchemy
-    gunicorn
-    PyYAML
-    requests
-    Werkzeug
-    """
-    files = {
-        "runtime.txt": "python-3.9.7",
-        "Procfile": "web: gunicorn app:app",
-        "requirements.txt": requirements
-    }
-    return files
-
-
-def installer():
-    files = {
-        "requirements.txt": deployment_files()["requirements.txt"],
-        "install.sh": "\n".join([
-            "#!/bin/bash",
-            " && ".join([
-                "pip install virtualenv",
-                "python -m virtualenv environment",
-                "source ./environment/bin/activate",
-                "pip install -r requirements.txt"
-            ])
-        ])
-    }
-    return files
-
-
 def init_app():
     app = Flask("app")
     CORS(app)
@@ -60,8 +26,3 @@ def init_db(app):
     for name in books:
         db.__setattr__(name, models.select_model(SQLAlchemy(app), name))
     return db
-
-
-def run(app):
-    app.run(**settings["server"])
-    return

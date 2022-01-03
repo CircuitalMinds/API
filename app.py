@@ -1,4 +1,4 @@
-from builder import init_app, init_db, run, settings
+from builder import init_app, init_db
 from database.handlers import get_data, add_data, update_data, delete_data, request_handler
 from flask import jsonify, send_file, request, redirect, url_for
 from drive import Storage, join
@@ -44,7 +44,3 @@ def api_storage(method=""):
         return redirect(url_for("home"))
     else:
         return jsonify({"response": f"method {method} not allowed"})
-
-
-if __name__ == '__main__':
-    run(app)

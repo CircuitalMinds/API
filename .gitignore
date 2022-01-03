@@ -1,0 +1,4 @@
+.env
+*environment
+*__pycache__
+*sass-cache
