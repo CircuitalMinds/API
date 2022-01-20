@@ -1,92 +1,74 @@
-from os import stat, listdir, remove, walk
-from os.path import join, isdir, isfile, getmtime
-from time import ctime
+from os import remove, walk
+from os.path import join, isdir, isfile
 from zipfile import ZipFile
 from json import load, dumps
+from yaml import full_load
 from subprocess import getoutput
-folder_size = 0.0
 
 
-def get_folder_data(name):
-    folder_path = name if name.startswith("./") else f"./{name}"
-    if isdir(folder_path):
-        def folder_data(*args, **kwargs):
-            xpath = join(*args)
-            for key in ("files", "folders"):
-                if key not in kwargs:
-                    kwargs[key] = []
-            for x in listdir(xpath):
-                d_path = join(xpath, x)
-                if isfile(d_path):
-                    size = stat(d_path).st_size * 1024 * 10e-10
-                    globals()["folder_size"] += size
-                    date = ctime(getmtime(d_path))
-                    kwargs["files"].append({"filename": x, "size": size, "date": date})
-                else:
-                    f_data = folder_data(d_path)
-                    f_data.update({"name": x, "path": d_path.split("./")[-1]})
-                    kwargs["folders"].append(f_data)
-            return kwargs
-        globals()["folder_size"] = 0.0
-        content = folder_data(folder_path)
-        return {"content": content, "total_size": globals()["folder_size"]}
-    else:
-        return {}
+class Dumper:
+    json = dict(
+        indent=4, sort_keys=True, ensure_ascii=False
+    )
+    yml = dict(
+        allow_unicode=False, indent=4, default_flow_style=False
+    )
 
-
-def search_file(name, data):
-    for i in data["files"]:
-        if i["filename"] == name:
-            return {"filename": name, "path": join(".", data["path"], name) if "path" in data else f"./{name}"}
-    for folder in data["folders"]:
-        for i in folder["files"]:
-            if i["filename"] == name:
-                return {"filename": name, "path": join(".", folder["path"], name) if "path" in folder else f"./{name}"}
-        for i in folder["folders"]:
-            search_file(name, i)
-    return {}
-
-
-def get_json(folder, filename):
-    folder_path = folder if folder.startswith("./") else f"./{folder}"
-    if isdir(folder_path):
-        file_path = join(
-            folder_path,
-            filename if filename.endswith(".json") else f"{filename}.json"
-        )
-        if isfile(file_path):
-            return load(open(file_path))
-    else:
-        return {}
-
-
-def save_json(folder, filename, data):
-    folder_path = folder if folder.startswith("./") else f"./{folder}"
-    if isdir(folder_path):
-        file_path = join(
-            folder_path,
-            filename if filename.endswith(".json") else f"{filename}.json"
-        )
-        with open(file_path, "w") as f:
-            f.write(dumps(
-                data,
-                indent=4, sort_keys=True, ensure_ascii=False
-            ))
-            f.close()
-    return
-
-
-def save_file(folder, filename, data, extension=None):
-    folder_path = folder if folder.startswith("./") else f"./{folder}"
-    if isdir(folder_path):
-        file_path = join(
-            folder_path,
-            f"{filename}.{extension}" if extension else filename
-        )
+    @staticmethod
+    def write_file(file_path, data):
         with open(file_path, "w") as f:
             f.write(data)
             f.close()
-    return
+        return
+
+    @staticmethod
+    def open_file(file_path):
+        if isfile(file_path):
+            return open(file_path)
+        else:
+            return None
+
+    @classmethod
+    def open_json(cls, json_file, *keys):
+        data = cls.open_file(json_file)
+        if data:
+            json_data = load(data)
+            if keys:
+                return cls.get_values(json_data, keys)
+            else:
+                return json_data
+        else:
+            return {}
+
+    @classmethod
+    def open_yaml(cls, yaml_file, *keys):
+        data = cls.open_file(yaml_file)
+        if data:
+            yaml_data = full_load(data)
+            if keys:
+                return cls.get_values(yaml_data, keys)
+            else:
+                return yaml_data
+        else:
+            return {}
+
+    @classmethod
+    def write_json(cls, file_path, data):
+        cls.write_file(file_path, data=dumps(data, **cls.json))
+        return
+
+    @classmethod
+    def write_yaml(cls, file_path, data):
+        import yaml
+        cls.write_file(*file_path, data=yaml.dump(data, **cls.yml))
+        return
+
+    @staticmethod
+    def get_values(data, keys):
+        return {
+            key: data[key]
+            for key in keys if key in data
+        }
 
 
 def create_zip(folder_path):
@@ -122,4 +104,3 @@ def get_info_zip(zip_path):
         })
     print(data)
     return data
-

@@ -1,9 +1,10 @@
 {
     "books": ["users", "posts", "videos"],
+    "app_folders": {"static_folder": "./static", "template_folder": "./templates"},
     "server": {
-        "debug": false,
-        "host": "circuitalminds.herokuapp.com",
-        "port": 80
+        "debug": true,
+        "host": "192.168.50.7",
+        "port": 5000
     },
     "environment": {
         "SQLALCHEMY_TRACK_MODIFICATIONS": false,
