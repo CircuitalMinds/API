@@ -1,15 +1,22 @@
 {
-    "books": ["users", "posts", "videos"],
-    "app_folders": {"static_folder": "./static", "template_folder": "./templates"},
-    "server": {
-        "debug": true,
-        "host": "192.168.50.7",
-        "port": 5000
+    "app_folders": {
+        "static_folder": "./static",
+        "template_folder": "./templates"
     },
+    "books": [
+        "users",
+        "posts",
+        "videos"
+    ],
     "environment": {
-        "SQLALCHEMY_TRACK_MODIFICATIONS": false,
         "SQLALCHEMY_BINDS": {},
+        "SQLALCHEMY_TRACK_MODIFICATIONS": false,
         "secret_key": "circuitalminds",
         "session_type": "filesystem"
+    },
+    "server": {
+        "debug": false,
+        "host": "https://circuitalminds.heroku.com",
+        "port": 80
     }
 }
