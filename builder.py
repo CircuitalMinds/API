@@ -2,14 +2,14 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from database import models
-from utils import Dumper
-fdata = Dumper.open_json("./settings.json").get
-books = fdata("books")
+from fmod import Obj
+config = Obj("./settings.json")
+books = config.get("books")
 
 
 def init_app():
-    app = Flask("app", **fdata("app_folders"))
-    data = fdata("environment")
+    app = Flask("app", **config.get("app_folders"))
+    data = config.get("environment")
     data["SQLALCHEMY_BINDS"].update({
         name: f"sqlite:///database/books/{name}.sqlite3"
         for name in books
@@ -31,5 +31,5 @@ def init_db(app):
 
 def run(app):
     return app.run(
-        **fdata("server")
+        **config.get("server")
     )

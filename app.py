@@ -2,9 +2,9 @@ from builder import init_app, init_db, run
 from database.handlers import get_data, add_data, update_data, delete_data, request_handler
 from flask import jsonify, request, render_template
 from drive import Storage
+storage = Storage()
 app = init_app()
 db = init_db(app)
-storage = Storage()
 
 
 @app.route("/", methods=["GET"])
