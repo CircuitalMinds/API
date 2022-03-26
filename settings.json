@@ -1,18 +1,21 @@
 {
-    "app_folders": {
-        "static_folder": "./static",
-        "template_folder": "./templates"
+    "db": {
+        "ext": "sqlite3",
+        "tables": [
+            "user",
+            "logger"
+        ],
+        "uri": "sqlite:///db/tables"
     },
-    "books": [
-        "users",
-        "posts",
-        "videos"
-    ],
-    "environment": {
+    "env": {
         "SQLALCHEMY_BINDS": {},
         "SQLALCHEMY_TRACK_MODIFICATIONS": false,
         "secret_key": "circuitalminds",
         "session_type": "filesystem"
+    },
+    "folders": {
+        "static_folder": "./static",
+        "template_folder": "./templates"
     },
     "server": {
         "debug": false,
