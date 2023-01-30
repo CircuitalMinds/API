@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+
+Url="https://github.com"
+Opt=$1;
+
+
+if [[ $Opt == "clone" ]]; then    
+    ToPath=$2; gitUser=$3; Repo=$4; Folder=$5;
+    cd "$ToPath" || exit
+    git clone "$Url/$gitUser/$Repo.git" "$Folder"
+elif [[ $Opt == "push" ]]; then
+    RepoPath=$2; gitUser=$3; Repo=$4
+    cd "$RepoPath" || exit
+    git add .
+    git commit -m "autocommit"
+    git push https://alanmatzumiya:$( head $HOME/secret )@github.com/$gitUser/$Repo.git
+elif [[ $Opt == "check" ]]; then
+    RepoPath=$2
+    if [[ -d "$RepoPath" ]]; then
+        cd "$RepoPath" || exit
+        git show
+    else
+        echo "$RepoPath is not repository"
+    fi
+elif [[ $Opt == "test" ]]; then
+    FolderTest=$2
+    cd "$FolderTest" || exit
+    TxtFile="# issue: test; date: $( date -R )"
+    echo "$TxtFile" > README.md    
+    git add .
+    git commit -m "autocommit-test"
+    git push
+fi

@@ -1,4 +1,8 @@
-.env
-*environment
 *__pycache__
-*sass-cache
+*conf
+*venv
+*static
+*templates
+*dataset
+*jupyter
+*youtube/downloads

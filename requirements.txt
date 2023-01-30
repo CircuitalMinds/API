@@ -1,16 +1,23 @@
+# server-build
 flask
 flask-cors
 flask_sqlalchemy
+flask_login
+# server-tools
 gunicorn
 requests
 Werkzeug
+# parser-tools
+markdown
 PyYAML
-numba
-mpmath
+python-dotenv
+# application-tools
 imageio
 imageio-ffmpeg
-matplotlib
+mpmath
 bs4
+matplotlib
+numba
 numpy
 scipy
 wikipedia

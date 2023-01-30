@@ -1,0 +1,56 @@
+{
+    "message-type": "INFO",
+    "location": "/home/alanmatzumiya/api/application/logger.py:33",
+    "module": "logger",
+    "function": "getinfo",
+    "time": "31/10/2022 16:29:37.76",            
+    "message": "Starting"
+},
+{
+    "message-type": "INFO",
+    "location": "/home/alanmatzumiya/api/application/logger.py:30",
+    "module": "logger",
+    "function": "init",
+    "time": "31/10/2022 16:29:37.76",            
+    "message": "Started"
+},
+{
+    "message-type": "WARNING",
+    "location": "/home/alanmatzumiya/api/venv/lib/python3.9/site-packages/werkzeug/_internal.py:224",
+    "module": "_internal",
+    "function": "_log",
+    "time": "31/10/2022 16:29:37.82",            
+    "message": " * Debugger is active!"
+},
+{
+    "message-type": "INFO",
+    "location": "/home/alanmatzumiya/api/venv/lib/python3.9/site-packages/werkzeug/_internal.py:224",
+    "module": "_internal",
+    "function": "_log",
+    "time": "31/10/2022 16:29:37.83",            
+    "message": " * Debugger PIN: 909-496-449"
+},
+{
+    "message-type": "INFO",
+    "location": "/home/alanmatzumiya/api/venv/lib/python3.9/site-packages/werkzeug/_internal.py:224",
+    "module": "_internal",
+    "function": "_log",
+    "time": "31/10/2022 16:29:44.338",            
+    "message": "192.168.50.100 - - [31/Oct/2022 16:29:44] "GET / HTTP/1.1" 200 -"
+},
+{
+    "message-type": "INFO",
+    "location": "/home/alanmatzumiya/api/venv/lib/python3.9/site-packages/werkzeug/_internal.py:224",
+    "module": "_internal",
+    "function": "_log",
+    "time": "31/10/2022 16:30:04.528",            
+    "message": " * Detected change in '/home/alanmatzumiya/api/app.py', reloading"
+},
+{
+    "message-type": "INFO",
+    "location": "/home/alanmatzumiya/api/venv/lib/python3.9/site-packages/werkzeug/_internal.py:224",
+    "module": "_internal",
+    "function": "_log",
+    "time": "31/10/2022 16:30:04.578",            
+    "message": " * Restarting with stat"
+},
